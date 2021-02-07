@@ -121,3 +121,5 @@ dist
 
 # Code editor ignor
 .idea
+
+localonly
