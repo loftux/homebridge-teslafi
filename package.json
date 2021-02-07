@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "displayName": "Homebridge Teslafi",
   "name": "homebridge-teslafi",
   "version": "0.1.0",
@@ -21,7 +21,7 @@
     "lint": "eslint ./src --ext .ts --max-warnings=150",
     "watch": "npm run build && npm link && nodemon",
     "build": "rimraf ./dist && tsc",
-    "prepublishOnly": "npm run lint && npm run build",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Tests not implemented\""
   },
   "keywords": [
