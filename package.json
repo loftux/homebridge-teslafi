@@ -1,0 +1,47 @@
+{
+  "private": true,
+  "displayName": "Homebridge Teslafi",
+  "name": "homebridge-teslafi",
+  "version": "0.0.0",
+  "description": "View and control your Tesla with Homekit using Homebridge and Teslafi API.",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:loftux/homebridge-teslafi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/loftux/homebridge-teslafi/issues"
+  },
+  "engines": {
+    "node": ">=10.17.0",
+    "homebridge": ">=1.0.0"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "eslint ./src --ext .ts --max-warnings=150",
+    "watch": "npm run build && npm link && nodemon",
+    "build": "rimraf ./dist && tsc",
+    "prepublishOnly": "npm run lint && npm run build",
+    "test": "echo \"Tests not implemented\""
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "tesla",
+    "teslafi",
+    "homekit"
+  ],
+  "dependencies": {
+    "node-fetch": "2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.6",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
+    "eslint": "^7.13.0",
+    "homebridge": "^1.2.3",
+    "nodemon": "^2.0.6",
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
+  }
+}

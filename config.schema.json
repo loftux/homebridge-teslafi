@@ -1,0 +1,110 @@
+{
+  "pluginAlias": "TeslafiPlugin",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Tesla Car Name",
+        "type": "string",
+        "required": true,
+        "default": "",
+        "description": "The name used as prefix in Homekit controls."
+      },
+      "token": {
+        "title": "Teslafi API Token",
+        "type": "string",
+        "required": true,
+        "default": "",
+        "description": "Your Teslafi token. Create one in your Teslafi accounts page. Remember to activate API Services you intend to use."
+      },
+
+      "lowBatterylevel": {
+        "title": "Low Battery Warning below percent",
+        "type": "integer",
+        "required": true,
+        "default": 20,
+        "minimum": 1,
+        "maximum": 99,
+        "description": "At what level would you like Homekit warn you of low battery. Independent of Car low batterey level."
+      },
+      "teslafiRefreshTimeout": {
+        "title": "Refresh Teslafi data every n sceonds",
+        "type": "integer",
+        "required": true,
+        "default": 60,
+        "minimum": 30,
+        "maximum": 3000,
+        "description": "How often should car data be fetched from Teslafi. 60s (default) is a resonable setting."
+      },
+      "wakeupTimeout": {
+        "title": "Wait n sceonds for care to wake up",
+        "type": "integer",
+        "required": true,
+        "default": 15,
+        "minimum": 0,
+        "maximum": 60,
+        "description": "If the car is sleeping when a command is sent, try to wake the car first and wait for n secons. Set to 0 if you don't want to wake the car. Lower value than 15 can be set, but not recommended."
+      },
+      "tempUnit": {
+        "title": "Temperature Display Units",
+        "type": "string",
+        "required": true,
+        "default": "C",
+        "description": "Not in use: Turns out Homekit deals with all values in C, and if you have set iOS to prefer F it will handle that.",
+        "oneOf": [
+          {
+            "title": "Celsius",
+            "enum": ["C"]
+          },
+          {
+            "title": "Fahrenheit",
+            "enum": ["F"]
+          }
+        ]
+      },
+      "rangeUnit": {
+        "title": "Range Display Units",
+        "type": "string",
+        "required": true,
+        "default": "km",
+        "description": "For future use when range display is implemented",
+        "oneOf": [
+          {
+            "title": "Kilometer",
+            "enum": ["km"]
+          },
+          {
+            "title": "Miles",
+            "enum": ["miles"]
+          }
+        ]
+      },
+      "disableTeslaOnlineAccessory": {
+        "title": "Disable Online",
+        "type": "boolean"
+      },
+      "disableTeslaSentryAccessory": {
+        "title": "Disable Sentry",
+        "type": "boolean"
+      },
+      "disableTeslaBatteryAccessory": {
+        "title": "Disable Charger/Battery",
+        "type": "boolean"
+      },
+      "disableTeslaThermostatAccessory": {
+        "title": "Disable Climate Control",
+        "type": "boolean"
+      },
+      "disableTeslaChargePortAccessory": {
+        "title": "Disable Charge Port lock",
+        "type": "boolean"
+      },
+      "disableTeslaDoorLockAccessory": {
+        "title": "Disable Door lock",
+        "type": "boolean"
+      }     
+    }
+  }
+}
