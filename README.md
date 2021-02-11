@@ -20,6 +20,8 @@ If you don't even own a Tesla yet, buy using this [referral link](https://ts.la/
 
 State of each accessory is updated if changed outside of Homekit. For example, when Sentry Mode is activated, it will give you a notification in Homekit. Each accessory can be disabled if you do not intend to use it. 
 
+![Screenshot](https://raw.githubusercontent.com/loftux/homebridge-teslafi/master/images/screenshot.PNG)
+
 ### Why use this plugin?
 Each application or plugin that you have that polls data from you Tesla makes it harder for your car to sleep, and thus drain battery. Teslafi already manage this well, and by polling the Teslafi API instead of Tesla API directly, we do not interfere with sleep attempts.
 
