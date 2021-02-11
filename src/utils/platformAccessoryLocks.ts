@@ -103,14 +103,16 @@ export class TeslaDoorLockAccessory extends TeslaAccessory {
     return service;
   }
   getLatestTeslafiData(): void {
-    if (this.teslacar.chargePortOpen !== !!this.currentState) {
-      this.service.updateCharacteristic(
-        this.platform.Characteristic.LockCurrentState,
-        this.teslacar.doorLockOpen
-          ? this.platform.Characteristic.LockTargetState.UNSECURED
-          : this.platform.Characteristic.LockTargetState.SECURED
-      );
-    }
+    // if (this.teslacar.chargePortOpen !== !!this.currentState) {
+    //   this.service.updateCharacteristic(
+    //     this.platform.Characteristic.LockCurrentState,
+    //     this.teslacar.doorLockOpen
+    //       ? this.platform.Characteristic.LockTargetState.UNSECURED
+    //       : this.platform.Characteristic.LockTargetState.SECURED
+    //   );
+    // }
+    this.service
+      .getCharacteristic(this.platform.Characteristic.LockCurrentState).getValue();
   }
 
   handleLockCurrentStateGet(callback) {
@@ -120,10 +122,10 @@ export class TeslaDoorLockAccessory extends TeslaAccessory {
 
     this.targetState = this.currentState;
 
-    this.service.updateCharacteristic(
-      this.platform.Characteristic.LockCurrentState,
-      this.currentState
-    );
+    // this.service.updateCharacteristic(
+    //   this.platform.Characteristic.LockCurrentState,
+    //   this.currentState
+    // );
 
     callback(null, this.currentState);
   }
@@ -154,10 +156,10 @@ export class TeslaDoorLockAccessory extends TeslaAccessory {
 
     this.teslacar.sleep(1);
 
-    this.service.setCharacteristic(
-      this.platform.Characteristic.LockCurrentState,
-      value
-    );
+    // this.service.setCharacteristic(
+    //   this.platform.Characteristic.LockCurrentState,
+    //   value
+    // );
     this.skipCount = 12;
 
     callback(null);

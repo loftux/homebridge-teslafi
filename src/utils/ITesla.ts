@@ -38,7 +38,6 @@ export abstract class TeslaAccessory implements ITeslaAccessory {
       // Poll the current state of the car, and if changed update
       if (this.skipCount > 0) {
         // Skip running function so that teslafi has a chance to update its data
-        //this.platform.log.debug('Skipping refresh count ', this.skipCount);
         this.skipCount--;
         return;
       }

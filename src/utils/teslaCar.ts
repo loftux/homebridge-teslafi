@@ -48,8 +48,6 @@ export class TeslaCar implements ITeslaCar {
     public readonly log: Logger,
     public readonly config: PlatformConfig
   ) {
-    this.log.debug('New Tesla car instance');
-
     this.rangeUnit = <string>config['rangeUnit'];
     this.tempUnit = <string>config['tempUnit'];
 
@@ -135,15 +133,12 @@ export class TeslaCar implements ITeslaCar {
       result.carState && result.carState === 'Charging'
         ? (this.battery.charging = true)
         : (this.battery.charging = false);
-        
+
       // Charging cable connected, empty string false, connected returns an id of cable (non empty string)
       // There is something wrong with the parsing if empty, becomes <invalid>
       result.conn_charge_cable && result.conn_charge_cable !== '<invalid>'
         ? (this.battery.connected = true)
         : (this.battery.connected = false);
-        // this.log.debug('result.conn_charge_cable', this.battery.connected);
-        // this.log.debug('result.conn_charge_cable', result.conn_charge_cable.length);
-        // this.log.debug('result.conn_charge_cable' + String(result.conn_charge_cable));
 
       if (result.battery_level && parseInt(result.battery_level)) {
         this.battery.level = parseInt(result.battery_level);
@@ -180,8 +175,6 @@ export class TeslaCar implements ITeslaCar {
     result.location
       ? (this.location = result.location)
       : (this.location = 'unknown');
-
-    this.log.debug('API Refresh ' + this.sentry_mode + ' ' + this.state);
   }
 
   public async wakeUp() {
@@ -204,11 +197,9 @@ export class TeslaCar implements ITeslaCar {
       .action('set_sentry_mode', status)
       .then(async (response) => {
         if (response.response && response.response.result) {
-          //this.log.debug('API Success')
           this.sentry_mode = status;
           return true;
         } else {
-          //this.log.debug('API fail')
           // Not changing car state, we do not know the actual state, let polling find out.
           return false;
         }
@@ -219,11 +210,9 @@ export class TeslaCar implements ITeslaCar {
     let action = status ? 'charge_start' : 'charge_stop';
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
-        //this.log.debug('API Success')
         this.battery.charging = status;
         return true;
       } else {
-        //this.log.debug('API fail')
         // Not changing car state, we do not know the actual state, let polling find out.
         return false;
       }
@@ -234,11 +223,9 @@ export class TeslaCar implements ITeslaCar {
     let action = status ? 'charge_port_door_open' : 'charge_port_door_close';
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
-        //this.log.debug('API Success')
         this.chargePortOpen = status;
         return true;
       } else {
-        //this.log.debug('API fail')
         // Not changing car state, we do not know the actual state, let polling find out.
         return false;
       }
@@ -249,11 +236,9 @@ export class TeslaCar implements ITeslaCar {
     let action = status ? 'door_unlock' : 'door_lock';
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
-        //this.log.debug('API Success')
         this.doorLockOpen = status;
         return true;
       } else {
-        //this.log.debug('API fail')
         // Not changing car state, we do not know the actual state, let polling find out.
         return false;
       }
@@ -262,17 +247,12 @@ export class TeslaCar implements ITeslaCar {
 
   public async toggleClimateOn(status) {
     let action = status ? 'auto_conditioning_start' : 'auto_conditioning_stop';
-    this.log.debug('API Climate status ' + status + ' Action ' + action);
-    // this.climateControl.isClimateOn = status;
-    // return true;
 
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
-        //this.log.debug('API Success')
         this.climateControl.isClimateOn = status;
         return true;
       } else {
-        //this.log.debug('API fail')
         // Not changing car state, we do not know the actual state, let polling find out.
         return false;
       }
@@ -280,19 +260,13 @@ export class TeslaCar implements ITeslaCar {
   }
 
   public async setClimateTemp(temp) {
-    this.log.debug('API Climate temp ', temp);
-    // this.climateControl.tempSetting = temp;
-    // return true;
-
     return await this.teslafiapi
       .action('set_temps', temp)
       .then(async (response) => {
         if (response.response && response.response.result) {
-          //this.log.debug('API Success')
           this.climateControl.tempSetting = temp;
           return true;
         } else {
-          //this.log.debug('API fail')
           // Not changing car state, we do not know the actual state, let polling find out.
           return false;
         }
