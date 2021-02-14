@@ -41,12 +41,12 @@ Setting | Explanation
 ------------ | -------------
 "platform"| "TeslafiPlugin" -  Always this value
 "name" | The name added to the Accessory and shows in HomeKit
-"lowBatterylevel" | When the Low Battery warning should be triggereed by HomeKit
+"lowBatterylevel" | When the Low Battery warning should be triggered by HomeKit
 "teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
-"wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is commited. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
+"wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is committed. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
 "tempUnit" | C or F, turns out HomeKit handles this, all is handled in C internally and your iOS settings will display matching your locale settings.
 "rangeUnit" | "km" or "miles". To be used when range display is added.
-"disable\<AccessoryName\>" | If you do now want to use a particular Accessory, you can disable it. See availbe options below.
+"disable\<AccessoryName\>" | If you don't want to use a particular Accessory, you can disable it. See available options below.
 
 
 
@@ -80,7 +80,7 @@ Trunk/Frunk. TeslaFi API does not allow for unlocking the trunk or frunk. So the
 This are things that I'm looking into implementing, and that is supported by the TeslaFi API.
 
 * Switch to Enable / Disable logging in TeslaFi. This will most likely turn off getting the data needed for this plugin, so not sure how useful this would be.
-* Start Polling - A switch let calls the TeslaFi API to start polling. Can be used to let TeslaFi that you now intend to use the car, and skip trying to sleep.
+* Start Polling - A switch let calls the TeslaFi API to start polling. Can be used to let TeslaFi know that you now intend to use the car, and skip trying to sleep.
 * Switch for max defrost.
 * Be able to change charge level.
 * Location Aware sensors - TeslaFi returns when your car is in one of your user defined locations. This can be used to trigger a Homekit sensor, and then used for automation.
