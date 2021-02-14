@@ -115,6 +115,7 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
   }
 
   handleChargeOnGet(callback) {
+    this.currentState = this.platform.teslacar.battery.charging;
     callback(null, this.platform.teslacar.battery.charging);
   }
 
@@ -164,12 +165,14 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
   handleChargingStateGet(callback) {
     // set this to a valid value for ChargingState
     let currentValue = this.platform.Characteristic.ChargingState.NOT_CHARGING;
-
+    this.currentState = false; // Not Charging
     if (!this.teslacar.battery.connected) {
       currentValue = this.platform.Characteristic.ChargingState.NOT_CHARGEABLE;
+      // No need to set currentState here as it is already "false";
     }
     if (this.teslacar.battery.charging) {
       currentValue = this.platform.Characteristic.ChargingState.CHARGING;
+      this.currentState = true;
     }
 
     callback(null, currentValue);
