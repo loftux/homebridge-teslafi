@@ -198,6 +198,7 @@ export class TeslaCar implements ITeslaCar {
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.sentry_mode = status;
+          this.setCarAsOnline();
           return true;
         } else {
           // Not changing car state, we do not know the actual state, let polling find out.
@@ -211,6 +212,7 @@ export class TeslaCar implements ITeslaCar {
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
         this.battery.charging = status;
+        this.setCarAsOnline();
         return true;
       } else {
         // Not changing car state, we do not know the actual state, let polling find out.
@@ -224,6 +226,7 @@ export class TeslaCar implements ITeslaCar {
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
         this.chargePortOpen = status;
+        this.setCarAsOnline();
         return true;
       } else {
         // Not changing car state, we do not know the actual state, let polling find out.
@@ -237,6 +240,7 @@ export class TeslaCar implements ITeslaCar {
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
         this.doorLockOpen = status;
+        this.setCarAsOnline();
         return true;
       } else {
         // Not changing car state, we do not know the actual state, let polling find out.
@@ -251,6 +255,7 @@ export class TeslaCar implements ITeslaCar {
     return await this.teslafiapi.action(action, '').then(async (response) => {
       if (response.response && response.response.result) {
         this.climateControl.isClimateOn = status;
+        this.setCarAsOnline();
         return true;
       } else {
         // Not changing car state, we do not know the actual state, let polling find out.
@@ -265,6 +270,7 @@ export class TeslaCar implements ITeslaCar {
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.climateControl.tempSetting = temp;
+          this.setCarAsOnline();
           return true;
         } else {
           // Not changing car state, we do not know the actual state, let polling find out.
@@ -277,5 +283,13 @@ export class TeslaCar implements ITeslaCar {
     return new Promise((resolve) => {
       setTimeout(resolve, delay);
     });
+  }
+
+  private setCarAsOnline() {
+    //Check if configure to wake the car when sending command, if so also set status to online
+    // We do this since it can take some timee for TeslaFi API to update its online status.
+    if (this.wakeupTimeout > 0) {
+      this.state = 'online';
+    }
   }
 }
