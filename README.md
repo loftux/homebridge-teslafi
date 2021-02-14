@@ -37,11 +37,23 @@ This plugin supports configuation using the [Homebridge Config UI X](https://www
 
 ### Manual configuration
 
-Coming: Explanation of each setting. If you do not have access to Homebridge Config UI, there are more details in config.schema.json.
+Setting | Explanation
+------------ | -------------
+"platform"| "TeslafiPlugin" -  Always this value
+"name" | The name added to the Accessory and shows in HomeKit
+"lowBatterylevel" | When the Low Battery warning should be triggereed by HomeKit
+"teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
+"wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is commited. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
+"tempUnit" | C or F, turns out HomeKit handles this, all is handled in C internally and your iOS settings will display matching your locale settings.
+"rangeUnit" | "km" or "miles". To be used when range display is added.
+"disable\<AccessoryName\>" | If you do now want to use a particular Accessory, you can disable it. See availbe options below.
+
+
+
 
     "platforms": [
         {
-            "platform": "TeslaFiPlugin",
+            "platform": "TeslafiPlugin",
             "name": "MyTesla",
             "token": "<TeslaFi token>",
             "lowBatterylevel": 20,
