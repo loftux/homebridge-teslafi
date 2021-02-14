@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "Homebridge Teslafi",
   "name": "homebridge-teslafi",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "View and control your Tesla with Homekit using Homebridge and Teslafi API.",
   "license": "ISC",
   "repository": {
