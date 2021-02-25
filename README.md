@@ -35,6 +35,9 @@ On the TeslaFi API page, enable or disable the API functions you intend to use. 
 
 This plugin supports configuation using the [Homebridge Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x).
 
+### Multiple Car support
+If you are using Homebridge 1.3.0 or above, you can add multiple cars using the child-bridge feature available from [1.3.0 of Homebridge](https://github.com/homebridge/homebridge/releases/tag/v1.3.0). Please consult the Homebridge documentation. You will also need multiple TeslaFi accounts.
+
 ### Manual configuration
 
 Setting | Explanation
