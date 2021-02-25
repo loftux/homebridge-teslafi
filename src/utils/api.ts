@@ -13,13 +13,10 @@ export class TeslafiAPI {
       : (this.wakeupTimeout = 15);
 
     this.log.debug('Initalized Teslafi API', this.config.name);
-    this.log.debug('Timeout: ', this.wakeupTimeout);
+
   }
 
   public async action(command: string, parameter: string): Promise<any> {
-    this.log.debug(
-      'Teslafi API command ' + command + ' parameter ' + parameter
-    );
     try {
       let url =
         'https://teslafi.com/feed.php?source=homebridge&encode=1&token=' +
@@ -80,9 +77,24 @@ export class TeslafiAPI {
 
       this.log.debug('Fetching: ' + url + wakeUp);
 
-      const response = await fetch(url + wakeUp);
-
-      return await response.json();
+      return fetch(url + wakeUp, {
+        headers: {
+          'Cache-Control': 'no-store',
+        },
+      })
+        .then((res) => {
+          return res.json();
+        })
+        .then((json) => {
+          return json;
+        })
+        .catch((err) => {
+          this.log.info(
+            'There was an error fetching from TeslaFi API. Turn on debug log if you need more details'
+          );
+          this.log.debug('TeslaFi API Error', err);
+          return {};
+        });
     } catch (error) {
       this.log.error('Teslafi API error:', error);
       if (typeof error === 'string') {

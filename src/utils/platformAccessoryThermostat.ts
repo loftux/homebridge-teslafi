@@ -66,24 +66,31 @@ export class TeslaThermostatAccessory extends TeslaAccessory {
       );
     }
 
-    this.service
-      .getCharacteristic(this.platform.Characteristic.CurrentTemperature)
-      .getValue();
-    this.service
-      .getCharacteristic(
-        this.platform.Characteristic.CurrentHeatingCoolingState
-      )
-      .getValue();
-    // Call target after, thus target has updatet values from current
-    this.service
-      .getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
-      .getValue();
+    let oldHeatingCoolingState = this.targetHeatingCoolingState;
+    let oldTemp = this.actualTemp;
+
+    this._updateCurrentState();
+
+    if (oldHeatingCoolingState !== this.targetHeatingCoolingState) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.CurrentHeatingCoolingState,
+        this.targetHeatingCoolingState
+      );
+    }
+
+    if (oldTemp !== this.actualTemp) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.CurrentTemperature,
+        this.actualTemp
+      );
+    }
   }
 
-  /**
-   * Handle requests to get the current value of the "Current Heating Cooling State" characteristic
-   */
-  handleCurrentHeatingCoolingStateGet(callback) {
+  _updateCurrentState(): void {
+    // Current Temperature
+    this.actualTemp = this.teslacar.climateControl.insideTemp;
+
+    // CoolingState
     let coolingState = this.platform.Characteristic.CurrentHeatingCoolingState
       .OFF;
 
@@ -107,10 +114,15 @@ export class TeslaThermostatAccessory extends TeslaAccessory {
         }
       }
     }
-
     this.targetHeatingCoolingState = coolingState;
+  }
 
-    callback(null, coolingState);
+  /**
+   * Handle requests to get the current value of the "Current Heating Cooling State" characteristic
+   */
+  handleCurrentHeatingCoolingStateGet(callback) {
+    this._updateCurrentState();
+    callback(null, this.targetHeatingCoolingState);
   }
 
   /**
@@ -125,6 +137,15 @@ export class TeslaThermostatAccessory extends TeslaAccessory {
    */
   async handleTargetHeatingCoolingStateSet(value, callback) {
     let result = false;
+    callback(null);
+
+    if (this.targetHeatingCoolingState === value) {
+      // Avoid duplicate calls, the Homekit control seem to do that
+      return;
+    }
+
+    this.targetHeatingCoolingState = value;
+
     if (
       value === this.platform.Characteristic.TargetHeatingCoolingState.OFF &&
       this.teslacar.climateControl.isClimateOn
@@ -140,32 +161,22 @@ export class TeslaThermostatAccessory extends TeslaAccessory {
     }
 
     if (result) {
-      this.teslacar.sleep(1);
-
-      this.targetHeatingCoolingState = value;
-
-      this.skipCount = 12;
-
-      // Call this and it will be quicker to update homekit status
-      this.service
-        .getCharacteristic(
-          this.platform.Characteristic.CurrentHeatingCoolingState
-        )
-        .getValue();
-      this.service
-        .getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
-        .getValue();
+      setTimeout(() => {
+        // Call this and it will be quicker to update homekit status
+        this._updateCurrentState();
+        this.service.updateCharacteristic(
+          this.platform.Characteristic.CurrentHeatingCoolingState,
+          this.targetHeatingCoolingState
+        );
+      }, 1000);
     }
-    callback(null);
   }
 
   /**
    * Handle requests to get the current value of the "Current Temperature" characteristic
    */
   handleCurrentTemperatureGet(callback) {
-    this.actualTemp = this.teslacar.climateControl.insideTemp;
-
-    callback(null, this.teslacar.climateControl.insideTemp);
+    callback(null, this.actualTemp);
   }
 
   /**
@@ -188,11 +199,7 @@ export class TeslaThermostatAccessory extends TeslaAccessory {
   async handleTargetTemperatureSet(value, callback) {
     const result = await this.teslacar.setClimateTemp(value);
     if (result) {
-      this.teslacar.sleep(1);
-
       this.targetTempState = this.teslacar.climateControl.tempSetting = value;
-
-      this.skipCount = 12;
     }
     callback(null);
   }

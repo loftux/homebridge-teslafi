@@ -21,29 +21,26 @@ export class TeslaChargePortAccessory extends TeslaAccessory {
     return service;
   }
   getLatestTeslafiData(): void {
-    if (this.teslacar.chargePortOpen !== !!this.currentState) {
+    const oldValue = this.currentState;
+    this._updateLockCurrentState();
+    if (oldValue !== this.currentState) {
       this.service.updateCharacteristic(
         this.platform.Characteristic.LockCurrentState,
-        this.teslacar.chargePortOpen
-          ? this.platform.Characteristic.LockTargetState.UNSECURED
-          : this.platform.Characteristic.LockTargetState.SECURED
+        this.currentState
       );
     }
   }
 
   handleLockCurrentStateGet(callback) {
+    this._updateLockCurrentState();
+    this.targetState = this.currentState;
+    callback(null, this.currentState);
+  }
+
+  _updateLockCurrentState(): void {
     this.teslacar.chargePortOpen
       ? (this.currentState = this.platform.Characteristic.LockTargetState.UNSECURED)
       : (this.currentState = this.platform.Characteristic.LockTargetState.SECURED);
-
-    this.targetState = this.currentState;
-
-    this.service.updateCharacteristic(
-      this.platform.Characteristic.LockCurrentState,
-      this.currentState
-    );
-
-    callback(null, this.currentState);
   }
 
   /**
@@ -58,27 +55,22 @@ export class TeslaChargePortAccessory extends TeslaAccessory {
    */
   async handleLockTargetStateSet(value, callback) {
     this.targetState = value;
-
-    await this.teslacar.toggleChargePortOpen(
-      this.targetState === this.platform.Characteristic.LockTargetState.SECURED
-        ? false
-        : true
-    );
-
-    // We succeeded, so update the "current" state as well.
-    // We need to update the current state "later" because Siri can't
-    // handle receiving the change event inside the same "set target state"
-    // response. NOTE: From homeebrdige-tesla plugin that you need to pause
-
-    this.teslacar.sleep(1);
-
-    this.service.setCharacteristic(
-      this.platform.Characteristic.LockCurrentState,
-      value
-    );
-    this.skipCount = 12;
-
     callback(null);
+    await this.teslacar
+      .toggleChargePortOpen(
+        this.targetState ===
+          this.platform.Characteristic.LockTargetState.SECURED
+          ? false
+          : true
+      )
+      .then((result) => {
+        if (result) {
+          this.service.updateCharacteristic(
+            this.platform.Characteristic.LockCurrentState,
+            this.targetState
+          );
+        }
+      });
   }
 }
 
@@ -103,31 +95,26 @@ export class TeslaDoorLockAccessory extends TeslaAccessory {
     return service;
   }
   getLatestTeslafiData(): void {
-    // if (this.teslacar.chargePortOpen !== !!this.currentState) {
-    //   this.service.updateCharacteristic(
-    //     this.platform.Characteristic.LockCurrentState,
-    //     this.teslacar.doorLockOpen
-    //       ? this.platform.Characteristic.LockTargetState.UNSECURED
-    //       : this.platform.Characteristic.LockTargetState.SECURED
-    //   );
-    // }
-    this.service
-      .getCharacteristic(this.platform.Characteristic.LockCurrentState).getValue();
+    const oldValue = this.currentState;
+    this._updateLockCurrentState();
+    if (oldValue !== this.currentState) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.LockCurrentState,
+        this.currentState
+      );
+    }
   }
 
   handleLockCurrentStateGet(callback) {
+    this._updateLockCurrentState();
+    this.targetState = this.currentState;
+    callback(null, this.currentState);
+  }
+
+  _updateLockCurrentState(): void {
     this.teslacar.doorLockOpen
       ? (this.currentState = this.platform.Characteristic.LockTargetState.UNSECURED)
       : (this.currentState = this.platform.Characteristic.LockTargetState.SECURED);
-
-    this.targetState = this.currentState;
-
-    // this.service.updateCharacteristic(
-    //   this.platform.Characteristic.LockCurrentState,
-    //   this.currentState
-    // );
-
-    callback(null, this.currentState);
   }
 
   /**
@@ -142,26 +129,22 @@ export class TeslaDoorLockAccessory extends TeslaAccessory {
    */
   async handleLockTargetStateSet(value, callback) {
     this.targetState = value;
-
-    await this.teslacar.toggleDoorLockOpen(
-      this.targetState === this.platform.Characteristic.LockTargetState.SECURED
-        ? false
-        : true
-    );
-
-    // We succeeded, so update the "current" state as well.
-    // We need to update the current state "later" because Siri can't
-    // handle receiving the change event inside the same "set target state"
-    // response. NOTE: From homeebrdige-tesla plugin that you need to pause
-
-    this.teslacar.sleep(1);
-
-    // this.service.setCharacteristic(
-    //   this.platform.Characteristic.LockCurrentState,
-    //   value
-    // );
-    this.skipCount = 12;
-
     callback(null);
+
+    await this.teslacar
+      .toggleDoorLockOpen(
+        this.targetState ===
+          this.platform.Characteristic.LockTargetState.SECURED
+          ? false
+          : true
+      )
+      .then((result) => {
+        if (result) {
+          this.service.updateCharacteristic(
+            this.platform.Characteristic.LockCurrentState,
+            this.targetState
+          );
+        }
+      });
   }
 }

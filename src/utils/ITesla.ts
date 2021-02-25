@@ -13,10 +13,6 @@ export interface ITeslaAccessory {
 export abstract class TeslaAccessory implements ITeslaAccessory {
   protected currentState: any;
   protected targetState: any;
-  // Skip count, use to delay Teslafi API results since for example a charge request is not immediately reflected
-  // on Teslafi API status until car is polled. Used in setIntervall function, set in any other when an api request
-  // hasn't been sent to Teslafi
-  protected skipCount = 0;
   protected service: Service;
   protected pluginServiceVersion: string;
 
@@ -31,20 +27,14 @@ export abstract class TeslaAccessory implements ITeslaAccessory {
     this.service = this.getService();
     this.addServiceDescription(this.accessory, modelDescription);
 
-    //this.service.addLinkedService(this.getServiceDescription(modelDescription));
-
-    // Init all Accessories for fetch of latest Teslafi data
-    setInterval(() => {
-      // Poll the current state of the car, and if changed update
-      if (this.skipCount > 0) {
-        // Skip running function so that teslafi has a chance to update its data
-        this.skipCount--;
+    this.teslacar.em.on('teslafifetch', () => {
+      if (this.teslacar.skipUpdate) {
+        // This should only happen once, so reset the skip if something has gone wrong elsewheeere
+        this.platform.log.warn('Skipped Event for update. This should be a very rare case.');
         return;
       }
-
-      // Each instance implements its own data handling
       this.getLatestTeslafiData();
-    }, 5000);
+    });
   }
 
   abstract getService(): Service;

@@ -1,8 +1,13 @@
 import { Logger, PlatformConfig } from 'homebridge';
 import { TeslafiAPI } from './api';
 import { ITeslaCar } from './ITesla';
+import { EventEmitter } from 'events';
 
 export class TeslaCar implements ITeslaCar {
+  public em: EventEmitter;
+  private intervallRefresh: any;
+  public skipUpdate = false; // If an API call is ongoing, ignoree event in order to not reset accessory status.
+
   public rangeUnit: string;
   private milesToKm = 1.609344;
   public tempUnit: string;
@@ -48,6 +53,8 @@ export class TeslaCar implements ITeslaCar {
     public readonly log: Logger,
     public readonly config: PlatformConfig
   ) {
+    this.em = new EventEmitter();
+
     this.rangeUnit = <string>config['rangeUnit'];
     this.tempUnit = <string>config['tempUnit'];
 
@@ -64,7 +71,7 @@ export class TeslaCar implements ITeslaCar {
     this.teslafiapi = new TeslafiAPI(log, config);
     this.refresh();
 
-    setInterval(() => {
+    this.intervallRefresh = setInterval(() => {
       this.refresh();
     }, this.teslafiRefreshTimeout);
   }
@@ -175,9 +182,16 @@ export class TeslaCar implements ITeslaCar {
     result.location
       ? (this.location = result.location)
       : (this.location = 'unknown');
+
+    // Finally emit event
+    this.em.emit('teslafifetch');
+    // If for some reason, the skip has not been reset, we do so to avoid it never updating. But only after we emitted event.
+    // TODO: Evaluate if this has desired outcome.
+    this.skipUpdate = false;
   }
 
   public async wakeUp() {
+    this.skipUpdate = true;
     return await this.teslafiapi
       .action('wake_up', '')
       .then(async (response) => {
@@ -189,10 +203,14 @@ export class TeslaCar implements ITeslaCar {
           // Not changing car state, we do not know the actual state, let polling find out.
           return false;
         }
+      })
+      .finally(() => {
+        this.afterAPICall();
       });
   }
 
   public async toggleSentryMode(status) {
+    this.skipUpdate = true;
     return await this.teslafiapi
       .action('set_sentry_mode', status)
       .then(async (response) => {
@@ -204,67 +222,95 @@ export class TeslaCar implements ITeslaCar {
           // Not changing car state, we do not know the actual state, let polling find out.
           return false;
         }
+      })
+      .finally(() => {
+        this.afterAPICall();
       });
   }
 
   public async toggleCharging(status) {
+    this.skipUpdate = true;
     let action = status ? 'charge_start' : 'charge_stop';
-    return await this.teslafiapi.action(action, '').then(async (response) => {
-      if (response.response && response.response.result) {
-        this.battery.charging = status;
-        this.setCarAsOnline();
-        return true;
-      } else {
-        // Not changing car state, we do not know the actual state, let polling find out.
-        return false;
-      }
-    });
+    return await this.teslafiapi
+      .action(action, '')
+      .then(async (response) => {
+        if (response.response && response.response.result) {
+          this.battery.charging = status;
+          this.setCarAsOnline();
+          return true;
+        } else {
+          // Not changing car state, we do not know the actual state, let polling find out.
+          return false;
+        }
+      })
+      .finally(() => {
+        this.afterAPICall();
+      });
   }
 
   public async toggleChargePortOpen(status) {
+    this.skipUpdate = true;
     let action = status ? 'charge_port_door_open' : 'charge_port_door_close';
-    return await this.teslafiapi.action(action, '').then(async (response) => {
-      if (response.response && response.response.result) {
-        this.chargePortOpen = status;
-        this.setCarAsOnline();
-        return true;
-      } else {
-        // Not changing car state, we do not know the actual state, let polling find out.
-        return false;
-      }
-    });
+    return await this.teslafiapi
+      .action(action, '')
+      .then(async (response) => {
+        if (response.response && response.response.result) {
+          this.chargePortOpen = status;
+          this.setCarAsOnline();
+          return true;
+        } else {
+          // Not changing car state, we do not know the actual state, let polling find out.
+          return false;
+        }
+      })
+      .finally(() => {
+        this.afterAPICall();
+      });
   }
 
   public async toggleDoorLockOpen(status) {
+    this.skipUpdate = true;
     let action = status ? 'door_unlock' : 'door_lock';
-    return await this.teslafiapi.action(action, '').then(async (response) => {
-      if (response.response && response.response.result) {
-        this.doorLockOpen = status;
-        this.setCarAsOnline();
-        return true;
-      } else {
-        // Not changing car state, we do not know the actual state, let polling find out.
-        return false;
-      }
-    });
+    return await this.teslafiapi
+      .action(action, '')
+      .then(async (response) => {
+        if (response.response && response.response.result) {
+          this.doorLockOpen = status;
+          this.setCarAsOnline();
+          return true;
+        } else {
+          // Not changing car state, we do not know the actual state, let polling find out.
+          return false;
+        }
+      })
+      .finally(() => {
+        this.afterAPICall();
+      });
   }
 
   public async toggleClimateOn(status) {
+    this.skipUpdate = true;
     let action = status ? 'auto_conditioning_start' : 'auto_conditioning_stop';
 
-    return await this.teslafiapi.action(action, '').then(async (response) => {
-      if (response.response && response.response.result) {
-        this.climateControl.isClimateOn = status;
-        this.setCarAsOnline();
-        return true;
-      } else {
-        // Not changing car state, we do not know the actual state, let polling find out.
-        return false;
-      }
-    });
+    return await this.teslafiapi
+      .action(action, '')
+      .then(async (response) => {
+        if (response.response && response.response.result) {
+          this.climateControl.isClimateOn = status;
+          this.setCarAsOnline();
+          return true;
+        } else {
+          // Not changing car state, we do not know the actual state, let polling find out.
+          return false;
+        }
+      })
+      .finally(() => {
+        this.afterAPICall();
+      });
   }
 
   public async setClimateTemp(temp) {
+    this.skipUpdate = true;
     return await this.teslafiapi
       .action('set_temps', temp)
       .then(async (response) => {
@@ -276,13 +322,10 @@ export class TeslaCar implements ITeslaCar {
           // Not changing car state, we do not know the actual state, let polling find out.
           return false;
         }
+      })
+      .finally(() => {
+        this.afterAPICall();
       });
-  }
-
-  public async sleep(delay = 0) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, delay);
-    });
   }
 
   private setCarAsOnline() {
@@ -291,5 +334,20 @@ export class TeslaCar implements ITeslaCar {
     if (this.wakeupTimeout > 0) {
       this.state = 'online';
     }
+  }
+
+  private afterAPICall() {
+
+    this.skipUpdate = false;
+    // Restart intervall timer
+    clearInterval(this.intervallRefresh);
+    this.intervallRefresh = setInterval(() => {
+      this.refresh();
+    }, this.teslafiRefreshTimeout);
+
+    // Emit event to update any changes, but wait 1s (just a hunch Homekit not happy if a change comes immediately)
+    setTimeout(() => {
+      this.em.emit('teslafifetch');
+    }, 1000);
   }
 }

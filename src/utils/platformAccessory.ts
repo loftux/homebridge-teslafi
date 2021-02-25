@@ -1,4 +1,4 @@
-import { Service, CharacteristicProps } from 'homebridge';
+import { Service, CharacteristicProps, Characteristic } from 'homebridge';
 import { TeslaAccessory } from './ITesla';
 
 export class TeslaOnlineAccessory extends TeslaAccessory {
@@ -16,15 +16,23 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
   }
 
   getLatestTeslafiData(): void {
-    this.service.getCharacteristic(this.platform.Characteristic.On).getValue();
+    const oldState = this.currentState;
+    this._getCurrentState();
+    if (oldState !== this.currentState) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.On,
+        this.currentState
+      );
+    }
   }
 
-  handleOnGet(callback) {
-    // set this to a valid value for On
-    const onlineStatus =
+  _getCurrentState(): void {
+    this.currentState =
       this.platform.teslacar.state === 'asleep' ? false : true;
-
-    callback(null, onlineStatus);
+  }
+  handleOnGet(callback) {
+    this._getCurrentState();
+    callback(null, this.currentState);
   }
 
   /**
@@ -32,17 +40,31 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
    */
   async handleOnSet(value, callback) {
     if (value) {
+      callback(null);
       // When we reset the satus of The switch, handleOnSet will be called, so check if car is already online before calling wake_up
       if (this.platform.teslacar.state !== 'online') {
-        await this.teslacar.wakeUp();
-        this.platform.teslacar.state = 'online';
-        this.skipCount = 12;
+        await this.teslacar.wakeUp().then(() => {
+          this.platform.teslacar.state = 'online';
+          this.currentState = true;
+          this.service.updateCharacteristic(
+            this.platform.Characteristic.On,
+            this.currentState
+          );
+        });
       }
     } else {
-      // Ignors since we cannot set the car asleep
-    }
+      callback(null);
 
-    callback(null);
+      // Set switch state back
+      if (this.platform.teslacar.state === 'online') {
+        setTimeout(() => {
+          this.service.updateCharacteristic(
+            this.platform.Characteristic.On,
+            true
+          );
+        }, 1000);
+      }
+    }
   }
 }
 
@@ -52,6 +74,11 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
   protected lowBatteryLevel = this.platform.config['lowBatterylevel']
     ? <number>this.platform.config['lowBatterylevel']
     : 20;
+
+  protected currentStateOutletInUse = false;
+  protected currentStateBattereyLevel = 100;
+  protected currentStateCharging = 0;
+  protected currentStateBatteryLevelLow = 0;
 
   getService(): Service {
     let service =
@@ -90,33 +117,85 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
   }
 
   getLatestTeslafiData(): void {
-    // Poll the current state of the car, and if changed update
-    this.service.getCharacteristic(this.platform.Characteristic.On).getValue();
+    const oldCurrentStateBattereyLevel = this.currentStateBattereyLevel;
+    const oldCurrentStateBatteryLevelLow = this.currentStateBatteryLevelLow;
+    const oldCurrentStateOutletInUse = this.currentStateOutletInUse;
+    const oldCurrentStateCharging = this.currentStateCharging;
+    const oldCurrentState = this.currentState;
 
-    this.batteryService
-      ?.getCharacteristic(this.platform.Characteristic.BatteryLevel)
-      .getValue();
+    this._updateCurrentState();
 
-    this.service
-      .getCharacteristic(this.platform.Characteristic.OutletInUse)
-      .getValue();
+    if (oldCurrentStateBattereyLevel !== this.currentStateBattereyLevel) {
+      this.batteryService?.updateCharacteristic(
+        this.platform.Characteristic.BatteryLevel,
+        this.currentStateBattereyLevel
+      );
+    }
 
-    this.batteryService
-      ?.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
-      .getValue();
-    // Update the charging state if it has changed.
-    this.service
-      .getCharacteristic(this.platform.Characteristic.ChargingState)
-      .getValue();
+    if (oldCurrentStateBatteryLevelLow !== this.currentStateBatteryLevelLow) {
+      this.batteryService?.updateCharacteristic(
+        this.platform.Characteristic.StatusLowBattery,
+        this.currentStateBatteryLevelLow
+      );
+    }
+
+    if (oldCurrentStateOutletInUse !== this.currentStateOutletInUse) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.OutletInUse,
+        this.currentStateOutletInUse
+      );
+    }
+
+    if (oldCurrentStateCharging !== this.currentStateCharging) {
+      this.batteryService?.updateCharacteristic(
+        this.platform.Characteristic.ChargingState,
+        this.currentStateCharging
+      );
+    }
+
+    if (oldCurrentState !== this.currentState) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.On,
+        this.currentState
+      );
+    }
+  }
+
+  _updateCurrentState(): void {
+    // Status Low Battery
+    this.currentStateBatteryLevelLow =
+      this.teslacar.battery.level <= <number>this.lowBatteryLevel
+        ? this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW
+        : this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
+
+    // Outlet In use
+    this.currentStateOutletInUse = this.platform.teslacar.battery.connected;
+
+    // Battery Level
+    this.currentStateBattereyLevel = this.platform.teslacar.battery.level;
+
+    // OnOff
+    // Charging state
+    this.currentStateCharging = this.platform.Characteristic.ChargingState.NOT_CHARGING;
+    this.currentState = false; // Not Charging
+    if (!this.teslacar.battery.connected) {
+      this.currentStateCharging = this.platform.Characteristic.ChargingState.NOT_CHARGEABLE;
+      // No need to set currentState here as it is already "false";
+    }
+    if (this.teslacar.battery.charging) {
+      this.currentStateCharging = this.platform.Characteristic.ChargingState.CHARGING;
+      this.currentState = true;
+    }
   }
 
   handleOutletInUseGet(callback) {
-    callback(null, this.teslacar.battery.connected);
+    this._updateCurrentState();
+    callback(null, this.currentStateOutletInUse);
   }
 
   handleChargeOnGet(callback) {
-    this.currentState = this.platform.teslacar.battery.charging;
-    callback(null, this.platform.teslacar.battery.charging);
+    this._updateCurrentState();
+    callback(null, this.currentState);
   }
 
   /**
@@ -132,7 +211,6 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
       await this.teslacar.toggleCharging(true);
       this.platform.teslacar.battery.charging = true;
       this.currentState = value;
-      this.skipCount = 12;
       callback(null);
     } else if (
       !value &&
@@ -142,7 +220,6 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
       await this.teslacar.toggleCharging(false);
       this.platform.teslacar.battery.charging = false;
       this.currentState = value;
-      this.skipCount = 12;
       callback(null);
     } else {
       // Ignore since we cannot start charging when disconnected
@@ -156,26 +233,16 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
    */
   handleBatteryLevelGet(callback) {
     // set this to a valid value for BatteryLevel
-    callback(null, this.teslacar.battery.level);
+    this._updateCurrentState();
+    callback(null, this.currentStateBattereyLevel);
   }
 
   /**
    * Handle requests to get the current value of the "Charging State" characteristic
    */
   handleChargingStateGet(callback) {
-    // set this to a valid value for ChargingState
-    let currentValue = this.platform.Characteristic.ChargingState.NOT_CHARGING;
-    this.currentState = false; // Not Charging
-    if (!this.teslacar.battery.connected) {
-      currentValue = this.platform.Characteristic.ChargingState.NOT_CHARGEABLE;
-      // No need to set currentState here as it is already "false";
-    }
-    if (this.teslacar.battery.charging) {
-      currentValue = this.platform.Characteristic.ChargingState.CHARGING;
-      this.currentState = true;
-    }
-
-    callback(null, currentValue);
+    this._updateCurrentState();
+    callback(null, this.currentStateCharging);
   }
 
   /**
@@ -183,13 +250,8 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
    */
   handleStatusLowBatteryGet(callback) {
     // set this to a valid value for StatusLowBattery
-    // Low warning level
-
-    const currentValue =
-      this.teslacar.battery.level <= <number>this.lowBatteryLevel
-        ? this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW
-        : this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
-    callback(null, currentValue);
+    this._updateCurrentState();
+    callback(null, this.currentStateBatteryLevelLow);
   }
 }
 
@@ -233,22 +295,31 @@ export class TeslaSentryAccessory extends TeslaAccessory {
   }
 
   getLatestTeslafiData() {
-    this.service
-      .getCharacteristic(
-        this.platform.Characteristic.SecuritySystemCurrentState
-      )
-      .getValue();
+    const oldState = this.currentState;
+    this._updateCurrentState();
+    if (oldState !== this.currentState) {
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.SecuritySystemCurrentState,
+        this.currentState
+      );
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.SecuritySystemTargetState,
+        this.currentState
+      );
+    }
   }
 
-  /**
-   * Handle requests to get the current value of the 'Security System Current State' characteristic
-   */
-  handleSecuritySystemCurrentStateGet(callback) {
+  _updateCurrentState(): void {
     // set this to a valid value for SecuritySystemCurrentState
     this.teslacar.sentry_mode
       ? (this.currentState = this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM)
       : (this.currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED);
-
+  }
+  /**
+   * Handle requests to get the current value of the 'Security System Current State' characteristic
+   */
+  handleSecuritySystemCurrentStateGet(callback) {
+    this._updateCurrentState();
     callback(null, this.currentState);
   }
 
@@ -263,31 +334,25 @@ export class TeslaSentryAccessory extends TeslaAccessory {
    * Handle requests to set the 'Security System Target State' characteristic
    */
   async handleSecuritySystemTargetStateSet(state, callback) {
+    callback(null);
+
     if (state !== this.currentState) {
-      const result = await this.teslacar.toggleSentryMode(
-        state === 1 ? true : false
-      );
-      if (result) {
-        this.currentState = state;
+      this.currentState = state;
 
-        this.teslacar.sleep(1);
-
-        this.skipCount = 12; // 60 seconds
-
-        state === 1
-          ? (this.teslacar.sentry_mode = true)
-          : (this.teslacar.sentry_mode = false);
-
-        callback(null);
-
-        this.service
-          .getCharacteristic(
-            this.platform.Characteristic.SecuritySystemCurrentState
-          )
-          .getValue();
-      } else {
-        callback('Error');
-      }
+      await this.teslacar
+        .toggleSentryMode(state === 1 ? true : false)
+        .then((result) => {
+          if (result) {
+            this.service.updateCharacteristic(
+              this.platform.Characteristic.SecuritySystemCurrentState,
+              this.currentState
+            );
+            this.service.updateCharacteristic(
+              this.platform.Characteristic.SecuritySystemTargetState,
+              this.currentState
+            );
+          }
+        });
     }
   }
 }
