@@ -9,12 +9,11 @@ import {
 } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import {
-  TeslaSentryAccessory,
-  TeslaOnlineAccessory,
-  TeslaBatteryAccessory,
-} from './platformAccessory';
-import { TeslaChargePortAccessory, TeslaDoorLockAccessory } from './platformAccessoryLocks';
+import { TeslaOnlineAccessory } from './platformAccessoryOnline';
+import { TeslaSentryAccessory } from './platformAccessorySentry';
+import { TeslaBatteryAccessory } from './platformAccessoryBattery';
+import { TeslaChargePortAccessory } from './platformAccessoryLockChargePort';
+import { TeslaDoorLockAccessory } from './platformAccessoryLockDoor';
 import { TeslaThermostatAccessory } from './platformAccessoryThermostat';
 import { TeslafiAPI } from './api';
 import { TeslaCar } from './teslaCar';

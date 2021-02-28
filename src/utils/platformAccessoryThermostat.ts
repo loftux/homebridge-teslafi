@@ -1,4 +1,4 @@
-import { Service, CharacteristicProps } from 'homebridge';
+import { CharacteristicProps } from 'homebridge';
 import { TeslaAccessory } from './ITesla';
 
 export class TeslaThermostatAccessory extends TeslaAccessory {
