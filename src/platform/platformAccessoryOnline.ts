@@ -1,5 +1,5 @@
 import { Service } from 'homebridge';
-import { TeslaAccessory } from './ITesla';
+import { TeslaAccessory } from '../utils/ITesla';
 
 export class TeslaOnlineAccessory extends TeslaAccessory {
   getService(): Service {

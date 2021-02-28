@@ -1,7 +1,7 @@
 // import {  DynamicPlatformPlugin, Service, PlatformAccessory, Logger, PlatformConfig, Accessory } from 'homebridge';
 
 import { PlatformAccessory, Service } from 'homebridge';
-import { TeslafiPlatform } from './platform';
+import { TeslafiPlatform } from '../platform/platform';
 import { TeslaCar } from './teslaCar';
 
 export interface ITeslaAccessory {

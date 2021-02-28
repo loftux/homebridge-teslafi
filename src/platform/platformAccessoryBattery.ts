@@ -1,5 +1,5 @@
 import { Service } from 'homebridge';
-import { TeslaAccessory } from './ITesla';
+import { TeslaAccessory } from '../utils/ITesla';
 
 export class TeslaBatteryAccessory extends TeslaAccessory {
   protected batteryService?: Service;

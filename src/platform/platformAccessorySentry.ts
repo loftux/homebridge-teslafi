@@ -1,5 +1,5 @@
 import { Service, CharacteristicProps } from 'homebridge';
-import { TeslaAccessory } from './ITesla';
+import { TeslaAccessory } from '../utils/ITesla';
 
 export class TeslaSentryAccessory extends TeslaAccessory {
     getService(): Service {

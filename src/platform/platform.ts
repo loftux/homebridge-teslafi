@@ -8,15 +8,15 @@ import {
   Characteristic,
 } from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { PLATFORM_NAME, PLUGIN_NAME } from '../utils/settings';
 import { TeslaOnlineAccessory } from './platformAccessoryOnline';
 import { TeslaSentryAccessory } from './platformAccessorySentry';
 import { TeslaBatteryAccessory } from './platformAccessoryBattery';
 import { TeslaChargePortAccessory } from './platformAccessoryLockChargePort';
 import { TeslaDoorLockAccessory } from './platformAccessoryLockDoor';
 import { TeslaThermostatAccessory } from './platformAccessoryThermostat';
-import { TeslafiAPI } from './api';
-import { TeslaCar } from './teslaCar';
+import { TeslafiAPI } from '../utils/api';
+import { TeslaCar } from '../utils/teslaCar';
 
 /**
  * HomebridgePlatform

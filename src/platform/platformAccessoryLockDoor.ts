@@ -1,6 +1,6 @@
-import { TeslaAccessory } from './ITesla';
+import { TeslaAccessory } from '../utils/ITesla';
 
-export class TeslaChargePortAccessory extends TeslaAccessory {
+export class TeslaDoorLockAccessory extends TeslaAccessory {
   getService() {
     this.currentState = this.platform.Characteristic.LockTargetState.SECURED;
     this.targetState = this.platform.Characteristic.LockTargetState.SECURED;
@@ -38,7 +38,7 @@ export class TeslaChargePortAccessory extends TeslaAccessory {
   }
 
   _updateLockCurrentState(): void {
-    this.teslacar.chargePortOpen
+    this.teslacar.doorLockOpen
       ? (this.currentState = this.platform.Characteristic.LockTargetState.UNSECURED)
       : (this.currentState = this.platform.Characteristic.LockTargetState.SECURED);
   }
@@ -56,8 +56,9 @@ export class TeslaChargePortAccessory extends TeslaAccessory {
   async handleLockTargetStateSet(value, callback) {
     this.targetState = value;
     callback(null);
+
     await this.teslacar
-      .toggleChargePortOpen(
+      .toggleDoorLockOpen(
         this.targetState ===
           this.platform.Characteristic.LockTargetState.SECURED
           ? false

@@ -1,5 +1,5 @@
 import { CharacteristicProps } from 'homebridge';
-import { TeslaAccessory } from './ITesla';
+import { TeslaAccessory } from '../utils/ITesla';
 
 export class TeslaThermostatAccessory extends TeslaAccessory {
   private targetHeatingCoolingState = 0;

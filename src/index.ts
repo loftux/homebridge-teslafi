@@ -1,7 +1,7 @@
 import { API } from 'homebridge';
 
 import { PLATFORM_NAME } from './utils/settings';
-import { TeslafiPlatform } from './utils/platform'; 
+import { TeslafiPlatform } from './platform/platform'; 
 
 /**
  * This method registers the platform with Homebridge
