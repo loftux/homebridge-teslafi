@@ -60,9 +60,6 @@ export abstract class TeslaAccessory implements ITeslaAccessory {
       'Teslafi API'
     );
 
-    // It is not possible to dynamically update firmwareRevision, so just skip this
-    // service
-    //  .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.platform.teslacar.carVersion);
   }
 
   abstract getLatestTeslafiData(): void;
@@ -81,4 +78,9 @@ export interface ITeslaCar {
     range: number; // battery_range (miles)
     estimatedRange: number; // est_battery_range (miles)
   };
+  software: {
+    current: string;
+    new: string;
+    status: string;
+  }
 }

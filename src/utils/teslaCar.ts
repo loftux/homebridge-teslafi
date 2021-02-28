@@ -20,7 +20,11 @@ export class TeslaCar implements ITeslaCar {
   public state = 'asleep';
   public sentry_mode = false;
 
-  public carVersion = '2003.7.1';
+  public   software = {
+    current: '2003.7.1', // Default value until we have the actual. This is Tesla founding date ;)
+    new: '2003.7.1',
+    status: ''
+  };
 
   // Current location
   public location = 'unknown';
@@ -163,7 +167,7 @@ export class TeslaCar implements ITeslaCar {
         : (this.battery.heater = false);
 
       if (result.car_version) {
-        this.carVersion = result.car_version;
+        this.software.current = result.car_version;
       }
 
       result.locked && result.locked !== '1'
@@ -182,6 +186,15 @@ export class TeslaCar implements ITeslaCar {
     result.location
       ? (this.location = result.location)
       : (this.location = 'unknown');
+
+    result.newVersion ?
+      this.software.new = result.newVersion:
+      this.software.new = ''
+
+    result.newVersionStatus ? 
+      this.software.status = result.newVersionStatus:
+      this.software.status = '';
+    
 
     // Finally emit event
     this.em.emit('teslafifetch');
