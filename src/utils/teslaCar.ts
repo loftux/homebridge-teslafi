@@ -82,7 +82,7 @@ export class TeslaCar implements ITeslaCar {
     // Is car online?
     result.state ? (this.state = result.state) : (this.state = 'asleep');
 
-    if (this.state === 'online') {
+    if (this.state === 'online' && !(result.Notes && result.Notes === 'Trying To Sleep')) {
       // When asleep, teslafi returns null for most values, so keep what we have
       // Also when Trying to sleep, it returns online, but values ar null!
 
