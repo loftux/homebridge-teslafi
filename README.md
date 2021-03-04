@@ -17,6 +17,8 @@ If you don't even own a Tesla yet, buy using this [referral link](https://ts.la/
 * **Charge Port:** Open and Close the charge port.
 * **Climate Control:**  Start and Stop the Climate system. Set the temperature.
 * **Door lock:** Unlock and lock doors.
+* **New Software version:** Trigger Occupancy sensor when a new software version is available/installing.
+* **Tagged Locations:** Trigger Occupancy sensor when car is at a TeslaFi tagged location. Match one or more locations that you have named in TeslaFi.
 
 State of each accessory is updated if changed outside of Homekit. For example, when Sentry Mode is activated, it will give you a notification in Homekit. Each accessory can be disabled if you do not intend to use it. 
 
@@ -49,6 +51,7 @@ Setting | Explanation
 "wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is committed. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
 "tempUnit" | C or F, turns out HomeKit handles this, all is handled in C internally and your iOS settings will display matching your locale settings.
 "rangeUnit" | "km" or "miles". To be used when range display is added.
+"taggedLocations" | String array of named locations in TeslaFi. This will add an Occupancy sensor that trigggers whe TeslaFi has reported you ar at that location. You can add as many (reasonably) as you like. Must match the exakt name in TeslaFi. "No Tagged Location Found" is what TeslaFi use when there is no tagged location, this also works.
 "disable\<AccessoryName\>" | If you don't want to use a particular Accessory, you can disable it. See available options below.
 
 
@@ -64,6 +67,11 @@ Setting | Explanation
             "wakeupTimeout": 15,
             "tempUnit": "C",
             "rangeUnit": "km",
+            "taggedLocations": [
+                "Fremont",
+                "Grünheide",
+                "No Tagged Location Found"
+            ],
             "disableTeslaOnlineAccessory": false,
             "disableTeslaSentryAccessory": false,
             "disableTeslaBatteryAccessory": false,
@@ -86,7 +94,7 @@ This are things that I'm looking into implementing, and that is supported by the
 * Start Polling - A switch let calls the TeslaFi API to start polling. Can be used to let TeslaFi know that you now intend to use the car, and skip trying to sleep.
 * Switch for max defrost.
 * Be able to change charge level.
-* Location Aware sensors - TeslaFi returns when your car is in one of your user defined locations. This can be used to trigger a Homekit sensor, and then used for automation.
-* Sensor for new version available. Then use Automation to turn all you light bulbs on 100% so that you don't miss installing right away!
+* DONE: Location Aware sensors - TeslaFi returns when your car is in one of your user defined locations. This can be used to trigger a Homekit sensor, and then used for automation.
+* DONE: Sensor for new version available. Then use Automation to turn all you light bulbs on 100% so that you don't miss installing right away!
 * Sensor for  "is_user_present": "1"
 * Sensor for Driving.

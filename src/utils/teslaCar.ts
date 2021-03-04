@@ -2,6 +2,7 @@ import { Logger, PlatformConfig } from 'homebridge';
 import { TeslafiAPI } from './api';
 import { ITeslaCar } from './ITesla';
 import { EventEmitter } from 'events';
+import { throws } from 'assert';
 
 export class TeslaCar implements ITeslaCar {
   public em: EventEmitter;
@@ -187,6 +188,7 @@ export class TeslaCar implements ITeslaCar {
       ? (this.location = result.location)
       : (this.location = 'unknown');
 
+      
     result.newVersion ?
       this.software.new = result.newVersion:
       this.software.new = ''

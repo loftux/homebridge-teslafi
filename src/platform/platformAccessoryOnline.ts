@@ -5,7 +5,9 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
   protected softwareService?: Service;
   private softwareCurrentStatus = this.platform.Characteristic.OccupancyDetected
     .OCCUPANCY_NOT_DETECTED;
-  private softwareCurrentStatusName = '';
+  private softwareCurrentStatusName = '2003.7.1';
+
+  private currentLocation = 'unknown';
 
   getService(): Service {
     let service =
@@ -20,15 +22,68 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     // Add the battery Service
     this.softwareService =
       this.accessory.getService(this.platform.Service.OccupancySensor) ||
-      this.accessory.addService(this.platform.Service.OccupancySensor);
-    this.softwareService.setCharacteristic(
-      this.platform.Characteristic.Name,
-      this.softwareCurrentStatusName
-    );
+      this.accessory.addService(
+        this.platform.Service.OccupancySensor,
+        this.softwareCurrentStatusName
+      );
+
+    //this.softwareService.addCharacteristic(this.platform.Characteristic.Name);
+    // this.softwareService.setCharacteristic(
+    //   this.platform.Characteristic.Name,
+    //   this.softwareCurrentStatusName
+    //);
 
     this.softwareService
       .getCharacteristic(this.platform.Characteristic.OccupancyDetected)
       .on('get', this.handlesoftwareOccupancyDetectedGet.bind(this));
+
+    const locations: Array<string> =
+      this.platform.config['taggedLocations'] || [];
+
+    for (let l = locations.length, i = 0; i < l; i++) {
+      let tempService = <Service>(
+        this.accessory.getServiceById(
+          this.platform.Service.OccupancySensor,
+          'locationsensor_' + locations[i]
+        )
+      );
+      if (!tempService) {
+        tempService = new this.platform.Service.OccupancySensor(
+          locations[i],
+          'locationsensor_' + locations[i]
+        );
+        if (tempService) {
+          this.accessory.addService(tempService);
+        }
+      }
+      if (tempService) {
+        tempService
+          .getCharacteristic(this.platform.Characteristic.OccupancyDetected)
+          .on(
+            'get',
+            ((callback, location = locations[i]) => {
+              this._getCurrentState();
+              const statusOccupancy =
+                location === this.currentLocation
+                  ? this.platform.Characteristic.OccupancyDetected
+                      .OCCUPANCY_DETECTED
+                  : this.platform.Characteristic.OccupancyDetected
+                      .OCCUPANCY_NOT_DETECTED;
+
+              callback(null, statusOccupancy);
+            }).bind(this)
+          );
+      }
+    }
+
+    this.accessory.services.forEach((s) => {
+      if (s.subtype && s.subtype?.indexOf('locationsensor') > -1) {
+        if (!(locations.indexOf(s.displayName.toString()) > -1)) {
+          this.platform.log.info('Removing location Sensor', s.displayName);
+          this.accessory.removeService(s);
+        }
+      }
+    });
 
     return service;
   }
@@ -36,7 +91,8 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
   getLatestTeslafiData(): void {
     const oldState = this.currentState;
     const oldsoftwareCurrentStatus = this.softwareCurrentStatus;
-    const oldsoftwareCurrentStatusName = this.softwareCurrentStatusName
+    const oldsoftwareCurrentStatusName = this.softwareCurrentStatusName;
+    const oldCurrentLocation = this.currentLocation;
 
     this._getCurrentState();
     if (oldState !== this.currentState) {
@@ -46,12 +102,41 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       );
     }
 
-    if(oldsoftwareCurrentStatus !== this.softwareCurrentStatus) {
-      this.softwareService?.updateCharacteristic(this.platform.Characteristic.OccupancyDetected, this.softwareCurrentStatus)
+    if (oldsoftwareCurrentStatus !== this.softwareCurrentStatus) {
+      this.softwareService?.updateCharacteristic(
+        this.platform.Characteristic.OccupancyDetected,
+        this.softwareCurrentStatus
+      );
     }
 
-    if(oldsoftwareCurrentStatusName !== this.softwareCurrentStatusName) {
-      this.softwareService?.updateCharacteristic(this.platform.Characteristic.Name, this.softwareCurrentStatusName);
+    if (oldsoftwareCurrentStatusName !== this.softwareCurrentStatusName) {
+      this.softwareService?.updateCharacteristic(
+        this.platform.Characteristic.Name,
+        this.softwareCurrentStatusName
+      );
+    }
+
+    if (oldCurrentLocation !== this.currentLocation) {
+      const locations: [] = this.platform.config['taggedLocations'] || [];
+
+      for (let l = locations.length, i = 0; i < l; i++) {
+        const tempService = <Service>(
+          this.accessory.getServiceById(
+            this.platform.Service.OccupancySensor,
+            'locationsensor_' + locations[i]
+          )
+        );
+        if (tempService) {
+          tempService.updateCharacteristic(
+            this.platform.Characteristic.OccupancyDetected,
+            tempService.displayName === this.currentLocation
+              ? this.platform.Characteristic.OccupancyDetected
+                  .OCCUPANCY_DETECTED
+              : this.platform.Characteristic.OccupancyDetected
+                  .OCCUPANCY_NOT_DETECTED
+          );
+        }
+      }
     }
   }
 
@@ -66,7 +151,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
         break;
       case 'scheduled':
         this.softwareCurrentStatusName =
-          this.teslacar.software.new + ' Schedule to install';
+          this.teslacar.software.new + ' Scheduled to install';
         break;
       case 'downloading':
         this.softwareCurrentStatusName =
@@ -77,9 +162,9 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
           this.teslacar.software.new + ' Installing';
         break;
       case 'available':
-          this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Available for install';
-          break;
+        this.softwareCurrentStatusName =
+          this.teslacar.software.new + ' Available for install';
+        break;
       default:
         this.softwareCurrentStatusName =
           this.teslacar.software.new + ' Installed';
@@ -89,6 +174,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       ? (this.softwareCurrentStatus = this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED)
       : (this.softwareCurrentStatus = this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
 
+    this.currentLocation = this.teslacar.location;
   }
   handleOnGet(callback) {
     this._getCurrentState();
@@ -99,6 +185,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     this._getCurrentState();
     callback(null, this.softwareCurrentStatus);
   }
+
   /**
    * Handle requests to set the "On" characteristic
    */

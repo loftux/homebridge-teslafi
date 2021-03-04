@@ -83,6 +83,15 @@
           }
         ]
       },
+      "taggedLocations": {
+        "title": "Tagged Locations",
+        "description": "Each named location will trigger an occupancy sensor when matched with tagged locations in TeslaFi.",
+        "type": "array",
+        "items": {
+          "title": "Location",
+          "type": "string"
+        }
+      },
       "disableTeslaOnlineAccessory": {
         "title": "Disable Online",
         "type": "boolean"
