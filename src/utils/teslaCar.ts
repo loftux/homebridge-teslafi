@@ -21,10 +21,10 @@ export class TeslaCar implements ITeslaCar {
   public state = 'asleep';
   public sentry_mode = false;
 
-  public   software = {
+  public software = {
     current: '2003.7.1', // Default value until we have the actual. This is Tesla founding date ;)
     new: '2003.7.1',
-    status: ''
+    status: '',
   };
 
   // Current location
@@ -87,7 +87,10 @@ export class TeslaCar implements ITeslaCar {
     // Is car online?
     result.state ? (this.state = result.state) : (this.state = 'asleep');
 
-    if (this.state === 'online' && !(result.Notes && result.Notes === 'Trying To Sleep')) {
+    if (
+      this.state === 'online' &&
+      !(result.Notes && result.Notes === 'Trying To Sleep')
+    ) {
       // When asleep, teslafi returns null for most values, so keep what we have
       // Also when Trying to sleep, it returns online, but values ar null!
 
@@ -188,15 +191,13 @@ export class TeslaCar implements ITeslaCar {
       ? (this.location = result.location)
       : (this.location = 'unknown');
 
-      
-    result.newVersion ?
-      this.software.new = result.newVersion:
-      this.software.new = ''
+    result.newVersion
+      ? (this.software.new = result.newVersion)
+      : (this.software.new = '');
 
-    result.newVersionStatus ? 
-      this.software.status = result.newVersionStatus:
-      this.software.status = '';
-    
+    result.newVersionStatus
+      ? (this.software.status = result.newVersionStatus)
+      : (this.software.status = '');
 
     // Finally emit event
     this.em.emit('teslafifetch');
@@ -352,7 +353,6 @@ export class TeslaCar implements ITeslaCar {
   }
 
   private afterAPICall() {
-
     this.skipUpdate = false;
     // Restart intervall timer
     clearInterval(this.intervallRefresh);
