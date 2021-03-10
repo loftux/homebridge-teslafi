@@ -21,6 +21,13 @@
         "default": "",
         "description": "Your Teslafi token. Create one in your Teslafi accounts page. Remember to activate API Services you intend to use."
       },
+      "useNamePrefix": {
+        "title": "Use Name as prefix",
+        "type": "boolean",
+        "required": true,
+        "default": true,
+        "description": "If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars."
+      },
 
       "lowBatterylevel": {
         "title": "Low Battery Warning below percent",

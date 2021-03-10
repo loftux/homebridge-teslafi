@@ -13,7 +13,6 @@ export class TeslafiAPI {
       : (this.wakeupTimeout = 15);
 
     this.log.debug('Initalized Teslafi API', this.config.name);
-
   }
 
   public async action(command: string, parameter: string): Promise<any> {

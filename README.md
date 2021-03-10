@@ -46,6 +46,8 @@ Setting | Explanation
 ------------ | -------------
 "platform"| "TeslafiPlugin" -  Always this value
 "name" | The name added to the Accessory and shows in HomeKit
+"token" | TeslaFi token. Get this from your TeslaFi account
+"useNamePrefix" | If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars.
 "lowBatterylevel" | When the Low Battery warning should be triggered by HomeKit
 "teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
 "wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is committed. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
@@ -62,6 +64,7 @@ Setting | Explanation
             "platform": "TeslafiPlugin",
             "name": "MyTesla",
             "token": "<TeslaFi token>",
+            "useNamePrefix": true,
             "lowBatterylevel": 20,
             "teslafiRefreshTimeout": 60,
             "wakeupTimeout": 15,

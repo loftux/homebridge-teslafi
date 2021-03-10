@@ -34,42 +34,43 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
   // Teslafi API
   public readonly teslafiapi: TeslafiAPI;
   public readonly teslacar: TeslaCar;
+  public accessoryPrefix = '';
 
   private teslaDevices = [
     {
       teslaDeviceAssessoryType: TeslaSentryAccessory,
       teslaDeviceUniqueId: this.config.name + 'TeslaSentryAccessory',
-      teslaDeviceDisplayName: this.config.name + ' Sentry Mode',
+      teslaDeviceDisplayName: 'Sentry Mode',
       teslaModelDescription: 'Sentry Mode',
     },
     {
       teslaDeviceAssessoryType: TeslaOnlineAccessory,
       teslaDeviceUniqueId: this.config.name + 'TeslaOnlineAccessory',
-      teslaDeviceDisplayName: this.config.name + ' Online Status',
+      teslaDeviceDisplayName: 'Online Status',
       teslaModelDescription: 'Online Status',
     },
     {
       teslaDeviceAssessoryType: TeslaBatteryAccessory,
       teslaDeviceUniqueId: this.config.name + 'TeslaBatterAccessory',
-      teslaDeviceDisplayName: this.config.name + ' Charger',
+      teslaDeviceDisplayName: 'Charger',
       teslaModelDescription: 'Battery Charger',
     },
     {
       teslaDeviceAssessoryType: TeslaChargePortAccessory,
       teslaDeviceUniqueId: this.config.name + 'TeslaChargePortAccessory',
-      teslaDeviceDisplayName: this.config.name + ' Charge Port',
+      teslaDeviceDisplayName: 'Charge Port',
       teslaModelDescription: 'Charge Port',
     },
     {
       teslaDeviceAssessoryType: TeslaThermostatAccessory,
       teslaDeviceUniqueId: this.config.name + 'TeslaThermostatAccessory',
-      teslaDeviceDisplayName: this.config.name + ' Climate',
+      teslaDeviceDisplayName: 'Climate',
       teslaModelDescription: 'Climate',
     },
     {
       teslaDeviceAssessoryType: TeslaDoorLockAccessory,
       teslaDeviceUniqueId: this.config.name + 'TeslaDoorLockAccessory',
-      teslaDeviceDisplayName: this.config.name + ' Door Lock',
+      teslaDeviceDisplayName: 'Door Lock',
       teslaModelDescription: 'Door Lock',
     },
   ];
@@ -81,6 +82,11 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
   ) {
     this.teslafiapi = new TeslafiAPI(this.log, this.config);
     this.teslacar = new TeslaCar(log, config);
+
+    // Set the prefix
+    if (this.config['useNamePrefix'] && this.config['useNamePrefix'] === true) {
+      this.accessoryPrefix = this.config.name ? this.config.name + ' ' : '';
+    }
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
@@ -109,10 +115,6 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
    * must not be registered again to prevent 'duplicate UUID' errors.
    */
   discoverDevices() {
-    // EXAMPLE ONLY
-    // A real plugin you would discover accessories from the local network, cloud services
-    // or a user-defined array in the platform config.
-
     // loop over the discovered devices and register each one if it has not already been registered
     for (const device of this.teslaDevices) {
       // generate a unique id for the accessory this should be generated from
@@ -136,6 +138,7 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
         // the accessory already exists
         this.log.info(
           'Device restore ' +
+            this.accessoryPrefix +
             device.teslaDeviceDisplayName +
             ' ' +
             existingAccessory.displayName
@@ -174,11 +177,14 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
         }
       } else if (!disabled) {
         // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.teslaDeviceDisplayName);
+        this.log.info(
+          'Adding new accessory:',
+          this.accessoryPrefix + device.teslaDeviceDisplayName
+        );
 
         // create a new accessory
         const accessory = new this.api.platformAccessory(
-          device.teslaDeviceDisplayName,
+          this.accessoryPrefix + device.teslaDeviceDisplayName,
           uuid
         );
 
@@ -215,7 +221,9 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
           : false;
         if (
           !disabled &&
-          device.teslaDeviceDisplayName === accessory.displayName
+          (device.teslaDeviceDisplayName === accessory.displayName ||
+            this.accessoryPrefix + device.teslaDeviceDisplayName ===
+              accessory.displayName)
         ) {
           this.log.info('Load: ' + disabled, accessory.displayName);
           keepAccessory = true;

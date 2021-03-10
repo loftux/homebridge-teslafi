@@ -30,7 +30,9 @@ export abstract class TeslaAccessory implements ITeslaAccessory {
     this.teslacar.em.on('teslafifetch', () => {
       if (this.teslacar.skipUpdate) {
         // This should only happen once, so reset the skip if something has gone wrong elsewheeere
-        this.platform.log.warn('Skipped Event for update. This should be a very rare case.');
+        this.platform.log.warn(
+          'Skipped Event for update. This can happen when an update is already on its way. API refresh will resume normal.'
+        );
         return;
       }
       this.getLatestTeslafiData();
@@ -52,14 +54,13 @@ export abstract class TeslaAccessory implements ITeslaAccessory {
     service.setCharacteristic(this.platform.Characteristic.Model, model);
     service.setCharacteristic(
       this.platform.Characteristic.Name,
-      this.platform.config.name + ' ' + model
+      this.platform.accessoryPrefix + model
     );
 
     service.setCharacteristic(
       this.platform.Characteristic.SerialNumber,
       'Teslafi API'
     );
-
   }
 
   abstract getLatestTeslafiData(): void;
@@ -82,5 +83,5 @@ export interface ITeslaCar {
     current: string;
     new: string;
     status: string;
-  }
+  };
 }

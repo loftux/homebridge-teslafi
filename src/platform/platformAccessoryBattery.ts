@@ -27,6 +27,11 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
       .getCharacteristic(this.platform.Characteristic.OutletInUse)
       .on('get', this.handleOutletInUseGet.bind(this));
 
+    // Handle name get, this to quickly reflect charge in display name
+    // service
+    // .getCharacteristic(this.platform.Characteristic.ConfiguredName)
+    // .on('get', this.handleOutletNameGet.bind(this));
+
     // Add the battery Service
     this.batteryService =
       this.accessory.getService(this.platform.Service.BatteryService) ||
@@ -43,8 +48,6 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
     this.batteryService
       .getCharacteristic(this.platform.Characteristic.StatusLowBattery)
       .on('get', this.handleStatusLowBatteryGet.bind(this));
-
-    service.addLinkedService(this.batteryService);
 
     return service;
   }
@@ -63,6 +66,9 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
         this.platform.Characteristic.BatteryLevel,
         this.currentStateBattereyLevel
       );
+      // Also set the charge in the swith name since Homekit is useless to display data that is there!!
+      // this.service.updateCharacteristic(this.platform.Characteristic.ConfiguredName,
+      //   this.platform.accessoryPrefix + this.currentStateBattereyLevel.toString() + '% Charged');
     }
 
     if (oldCurrentStateBatteryLevelLow !== this.currentStateBatteryLevelLow) {
@@ -120,6 +126,11 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
       this.currentState = true;
     }
   }
+
+  // handleOutletNameGet(callback) {
+  //   this._updateCurrentState();
+  //   callback(null, this.platform.accessoryPrefix + this.currentStateBattereyLevel.toString() + '% Charge');
+  // }
 
   handleOutletInUseGet(callback) {
     this._updateCurrentState();

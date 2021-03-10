@@ -19,19 +19,13 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       .on('get', this.handleOnGet.bind(this))
       .on('set', this.handleOnSet.bind(this));
 
-    // Add the battery Service
+    // Add the software Occupancy Senser
     this.softwareService =
       this.accessory.getService(this.platform.Service.OccupancySensor) ||
       this.accessory.addService(
         this.platform.Service.OccupancySensor,
-        this.softwareCurrentStatusName
+        'Software Status'
       );
-
-    //this.softwareService.addCharacteristic(this.platform.Characteristic.Name);
-    // this.softwareService.setCharacteristic(
-    //   this.platform.Characteristic.Name,
-    //   this.softwareCurrentStatusName
-    //);
 
     this.softwareService
       .getCharacteristic(this.platform.Characteristic.OccupancyDetected)
@@ -49,7 +43,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       );
       if (!tempService) {
         tempService = new this.platform.Service.OccupancySensor(
-          locations[i],
+          this.platform.accessoryPrefix + locations[i],
           'locationsensor_' + locations[i]
         );
         if (tempService) {
@@ -57,6 +51,12 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
         }
       }
       if (tempService) {
+        // Update the name in case config has change to use/not use accessory prefix
+        tempService.updateCharacteristic(
+          this.platform.Characteristic.Name,
+          this.platform.accessoryPrefix + locations[i]
+        );
+
         tempService
           .getCharacteristic(this.platform.Characteristic.OccupancyDetected)
           .on(
@@ -78,7 +78,16 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
 
     this.accessory.services.forEach((s) => {
       if (s.subtype && s.subtype?.indexOf('locationsensor') > -1) {
-        if (!(locations.indexOf(s.displayName.toString()) > -1)) {
+        let locationName = s.displayName;
+        if (this.platform.accessoryPrefix) {
+          // Prefix is used, grab the en part
+          const locationPart = s.displayName.split(' ');
+          if (locationPart.length > 1) {
+            locationName = locationPart[1];
+          }
+        }
+
+        if (!(locations.indexOf(locationName) > -1)) {
           this.platform.log.info('Removing location Sensor', s.displayName);
           this.accessory.removeService(s);
         }
@@ -111,7 +120,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
 
     if (oldsoftwareCurrentStatusName !== this.softwareCurrentStatusName) {
       this.softwareService?.updateCharacteristic(
-        this.platform.Characteristic.Name,
+        this.platform.Characteristic.ConfiguredName,
         this.softwareCurrentStatusName
       );
     }
@@ -129,7 +138,8 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
         if (tempService) {
           tempService.updateCharacteristic(
             this.platform.Characteristic.OccupancyDetected,
-            tempService.displayName === this.currentLocation
+            tempService.displayName ===
+              this.platform.accessoryPrefix + this.currentLocation
               ? this.platform.Characteristic.OccupancyDetected
                   .OCCUPANCY_DETECTED
               : this.platform.Characteristic.OccupancyDetected
@@ -168,6 +178,12 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       default:
         this.softwareCurrentStatusName =
           this.teslacar.software.new + ' Installed';
+    }
+
+    if (this.platform.accessoryPrefix) {
+      // Add prefix of car name if needed.
+      this.softwareCurrentStatusName =
+        this.platform.accessoryPrefix + this.softwareCurrentStatusName;
     }
 
     this.teslacar.software.status
