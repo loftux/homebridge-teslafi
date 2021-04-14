@@ -126,9 +126,13 @@ export class TeslaCar implements ITeslaCar {
       }
 
       // Sentry mode
-      result.sentry_mode && result.sentry_mode === '1'
-        ? (this.sentry_mode = true)
-        : (this.sentry_mode = false);
+      if(result.sentry_mode && result.sentry_mode === '1') {
+        this.sentry_mode = true
+      } else if(result.sentry_mode && result.sentry_mode === '0') {
+        this.sentry_mode = false
+      } else {
+        this.log.debug('Sentry mode returned unexpected result.', result.sentry_mode);
+      } 
 
       // Battery & Charge
       if (result.battery_range) {
