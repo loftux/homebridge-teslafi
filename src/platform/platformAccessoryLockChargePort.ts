@@ -24,10 +24,18 @@ export class TeslaChargePortAccessory extends TeslaAccessory {
     const oldValue = this.currentState;
     this._updateLockCurrentState();
     if (oldValue !== this.currentState) {
+      // First set the target state, then with a small delay, set current state 
       this.service.updateCharacteristic(
-        this.platform.Characteristic.LockCurrentState,
+        this.platform.Characteristic.LockTargetState,
         this.currentState
       );
+
+      setTimeout(() => {
+        this.service.updateCharacteristic(
+          this.platform.Characteristic.LockCurrentState,
+          this.currentState
+        );
+      }, 2000);
     }
   }
 
