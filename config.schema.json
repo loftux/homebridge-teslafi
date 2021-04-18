@@ -28,7 +28,6 @@
         "default": true,
         "description": "If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars."
       },
-
       "lowBatterylevel": {
         "title": "Low Battery Warning below percent",
         "type": "integer",
@@ -37,6 +36,15 @@
         "minimum": 1,
         "maximum": 99,
         "description": "At what level would you like Homekit warn you of low battery. Independent of Car low batterey level."
+      },
+      "chargeLevelIncrement": {
+        "title": "Charge level increment",
+        "type": "integer",
+        "required": true,
+        "default": 5,
+        "minimum": 1,
+        "maximum": 5,
+        "description": "Steps for each change in slider. Default is 5, easier to set desired level. 1 would give you fine tuning, but harder to pinpoint. Displayed max charge level will be rounded to this increment, so actual max charge level can differ from displayed. If this matters, use 1."
       },
       "teslafiRefreshTimeout": {
         "title": "Refresh Teslafi data every n sceonds",

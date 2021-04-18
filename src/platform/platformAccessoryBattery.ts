@@ -1,8 +1,9 @@
-import { Service } from 'homebridge';
+import { CharacteristicProps, Service } from 'homebridge';
 import { TeslaAccessory } from '../utils/ITesla';
 
 export class TeslaBatteryAccessory extends TeslaAccessory {
   protected batteryService?: Service;
+  protected chargeLevelService?: Service;
 
   protected lowBatteryLevel = this.platform.config['lowBatterylevel']
     ? <number>this.platform.config['lowBatterylevel']
@@ -12,6 +13,12 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
   protected currentStateBattereyLevel = 100;
   protected currentStateCharging = 0;
   protected currentStateBatteryLevelLow = 0;
+  protected currentChargeLevelSetting = 50;
+  protected currentChargeLevelSettingAdjusted = 50;
+  protected currentChargeLevelSettingInProgress = false;
+  protected chargeLevelIncrement = this.platform.config['chargeLevelIncrement']
+    ? <number>this.platform.config['chargeLevelIncrement']
+    : 5;
 
   getService(): Service {
     let service =
@@ -27,10 +34,34 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
       .getCharacteristic(this.platform.Characteristic.OutletInUse)
       .on('get', this.handleOutletInUseGet.bind(this));
 
-    // Handle name get, this to quickly reflect charge in display name
-    // service
-    // .getCharacteristic(this.platform.Characteristic.ConfiguredName)
-    // .on('get', this.handleOutletNameGet.bind(this));
+    // Update the name if there is not already a custom name
+    let chargeOutletName = service.getCharacteristic(
+      this.platform.Characteristic.ConfiguredName
+    );
+
+    if (!chargeOutletName.value) {
+      chargeOutletName.updateValue('Charger');
+    }
+
+    this.chargeLevelService =
+      this.accessory.getService(this.platform.Service.Lightbulb) ||
+      this.accessory.addService(this.platform.Service.Lightbulb);
+
+    this.chargeLevelService
+      .getCharacteristic(this.platform.Characteristic.Brightness)
+      .setProps(<CharacteristicProps>{
+        minValue: 50,
+        minStep: this.platform.config['chargeLevelIncrement']
+          ? <number>this.platform.config['chargeLevelIncrement']
+          : 5,
+      })
+      .on('get', this.handleChargeLevelGet.bind(this))
+      .on('set', this.handleChargeLevelSet.bind(this));
+
+    this.chargeLevelService
+      .getCharacteristic(this.platform.Characteristic.On)
+      .on('get', this.handleChargeLevelOnGet.bind(this))
+      .on('set', this.handleChargeLevelOnSet.bind(this));
 
     // Add the battery Service
     this.batteryService =
@@ -58,6 +89,7 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
     const oldCurrentStateOutletInUse = this.currentStateOutletInUse;
     const oldCurrentStateCharging = this.currentStateCharging;
     const oldCurrentState = this.currentState;
+    const oldCurrentChargeLevelSetting = this.currentChargeLevelSetting;
 
     this._updateCurrentState();
 
@@ -67,8 +99,13 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
         this.currentStateBattereyLevel
       );
       // Also set the charge in the swith name since Homekit is useless to display data that is there!!
-      // this.service.updateCharacteristic(this.platform.Characteristic.ConfiguredName,
-      //   this.platform.accessoryPrefix + this.currentStateBattereyLevel.toString() + '% Charged');
+      this.service.updateCharacteristic(
+        this.platform.Characteristic.ConfiguredName,
+        this.platform.accessoryPrefix +
+          '\uD83D\uDD0B ' +
+          this.currentStateBattereyLevel.toString() +
+          '%'
+      );
     }
 
     if (oldCurrentStateBatteryLevelLow !== this.currentStateBatteryLevelLow) {
@@ -98,6 +135,12 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
         this.currentState
       );
     }
+    if (oldCurrentChargeLevelSetting !== this.currentChargeLevelSetting) {
+      this.chargeLevelService?.updateCharacteristic(
+        this.platform.Characteristic.Brightness,
+        this.currentChargeLevelSetting
+      );
+    }
   }
 
   _updateCurrentState(): void {
@@ -125,12 +168,11 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
       this.currentStateCharging = this.platform.Characteristic.ChargingState.CHARGING;
       this.currentState = true;
     }
+    // Rounding to neares increment, stricly not neccessary as Homebridge will rund to nearest increment by itself when shown
+    this.currentChargeLevelSetting = this.adjustChargeLevelToIncrement(
+      this.teslacar.battery.chargeLimit
+    );
   }
-
-  // handleOutletNameGet(callback) {
-  //   this._updateCurrentState();
-  //   callback(null, this.platform.accessoryPrefix + this.currentStateBattereyLevel.toString() + '% Charge');
-  // }
 
   handleOutletInUseGet(callback) {
     this._updateCurrentState();
@@ -196,5 +238,57 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
     // set this to a valid value for StatusLowBattery
     this._updateCurrentState();
     callback(null, this.currentStateBatteryLevelLow);
+  }
+
+  handleChargeLevelGet(callback) {
+    this._updateCurrentState();
+    callback(null, this.currentChargeLevelSetting);
+  }
+
+  async handleChargeLevelSet(value, callback) {
+    this.currentChargeLevelSettingAdjusted = this.adjustChargeLevelToIncrement(
+      value
+    );
+    // Set this on the car object, else the Get migth have it hop around due to the "delay".
+    this.platform.teslacar.battery.chargeLimit = this.currentChargeLevelSettingAdjusted;
+
+    // We need to handle the fact that this gets called for every state the slider passes. Only update for the "final" value.
+    if (!this.currentChargeLevelSettingInProgress) {
+      this.currentChargeLevelSettingInProgress = true;
+      setTimeout(async () => {
+        await this.teslacar.setChargeLimit(
+          this.currentChargeLevelSettingAdjusted
+        );
+        this.currentChargeLevelSettingInProgress = false;
+      }, 5000);
+    }
+    callback(null);
+  }
+
+  handleChargeLevelOnGet(callback) {
+    callback(null, true);
+  }
+
+  handleChargeLevelOnSet(value, callback) {
+    callback(null);
+    if (!value) {
+      setTimeout(() => {
+        this.chargeLevelService?.updateCharacteristic(
+          this.platform.Characteristic.On,
+          true
+        );
+      }, 1000);
+    }
+  }
+
+  adjustChargeLevelToIncrement(value: number): number {
+    let limit =
+      Math.round(value / this.chargeLevelIncrement) * this.chargeLevelIncrement;
+    if (limit < 50) {
+      limit = 50;
+    } else if (limit > 100) {
+      limit = 100;
+    }
+    return limit;
   }
 }

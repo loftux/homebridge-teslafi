@@ -52,7 +52,7 @@ export class TeslafiAPI {
 
         case 'set_charge_limit':
           // Set Charge Limit	command=set_charge_limit&charge_limit_soc=XX
-          url += '&command=' + command + '&charge_limit=' + parameter;
+          url += '&command=' + command + '&charge_limit_soc=' + parameter;
           break;
 
         case 'set_sentry_mode':

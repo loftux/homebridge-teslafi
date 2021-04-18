@@ -13,7 +13,7 @@ If you don't even own a Tesla yet, buy using this [referral link](https://ts.la/
 
 * **Online status:** Shows if your car is online or sleeping. Lets you wake your Tesla if it is sleeping.
 * **Sentry Mode:** Turn Sentry mode On or Off.
-* **Charger:** Start and Stop charging, track battery level. Configurable low battery warning level.
+* **Charger:** Start and Stop charging, track battery level. Configurable low battery warning level. Set charge level.
 * **Charge Port:** Open and Close the charge port.
 * **Climate Control:**  Start and Stop the Climate system. Set the temperature.
 * **Door lock:** Unlock and lock doors.
@@ -37,6 +37,14 @@ On the TeslaFi API page, enable or disable the API functions you intend to use. 
 
 This plugin supports configuation using the [Homebridge Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x).
 
+### Configuration in your Home app
+Since Apple Homekit do not have Accessories that maps 1 to 1 with managing a car, implementation has to choose existing Homekit accessories. Thus, the charging level is set using a Light Bulb (!), because that adds a slider to use for changing charge level. It will always stay on.
+What you can do is to exclude it from showing in "status". Long press the accessory, scroll down to the settings icon, choose status. Un-tick include in home status. This way you get a cleaner interface.
+
+The Battery Charger acessory also has two bundled items. One that turns charging on/off, and one that sets the charge level. In Apple Home app, you can optionally show them as separate accessories.
+
+For a nicer look, change the icons from the default ones. Unfortunately Apple doesn't inlude that many, but there are some that you may feel are more fit for managing a car.
+
 ### Multiple Car support
 If you are using Homebridge 1.3.0 or above, you can add multiple cars using the child-bridge feature available from [1.3.0 of Homebridge](https://github.com/homebridge/homebridge/releases/tag/v1.3.0). Please consult the Homebridge documentation. You will also need multiple TeslaFi accounts.
 
@@ -49,6 +57,7 @@ Setting | Explanation
 "token" | TeslaFi token. Get this from your TeslaFi account
 "useNamePrefix" | If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars.
 "lowBatterylevel" | When the Low Battery warning should be triggered by HomeKit
+"chargeLevelIncrement" | Value between 1-5, 1 lets you set any target charge level between 50-100%, 5 set in steps of 5 and is easier to pinpoint with the slider. If max charge level value is set with the Tesla app or in any other way that differs from set increment, the rounded value is shown and can differ from actual set exact value. If this matters, use 1 as increment.
 "teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
 "wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is committed. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
 "tempUnit" | C or F, turns out HomeKit handles this, all is handled in C internally and your iOS settings will display matching your locale settings.
@@ -66,6 +75,7 @@ Setting | Explanation
             "token": "<TeslaFi token>",
             "useNamePrefix": true,
             "lowBatterylevel": 20,
+            "chargeLevelIncrement": 5
             "teslafiRefreshTimeout": 60,
             "wakeupTimeout": 15,
             "tempUnit": "C",
@@ -96,7 +106,7 @@ This are things that I'm looking into implementing, and that is supported by the
 * Switch to Enable / Disable logging in TeslaFi. This will most likely turn off getting the data needed for this plugin, so not sure how useful this would be.
 * Start Polling - A switch let calls the TeslaFi API to start polling. Can be used to let TeslaFi know that you now intend to use the car, and skip trying to sleep.
 * Switch for max defrost.
-* Be able to change charge level.
+* DONE: Be able to change charge level.
 * DONE: Location Aware sensors - TeslaFi returns when your car is in one of your user defined locations. This can be used to trigger a Homekit sensor, and then used for automation.
 * DONE: Sensor for new version available. Then use Automation to turn all you light bulbs on 100% so that you don't miss installing right away!
 * Sensor for  "is_user_present": "1"

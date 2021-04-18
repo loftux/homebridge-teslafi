@@ -42,6 +42,7 @@ export class TeslaCar implements ITeslaCar {
     heater: false,
     range: 0,
     estimatedRange: 0,
+    chargeLimit: 90,
   };
 
   public climateControl = {
@@ -170,6 +171,9 @@ export class TeslaCar implements ITeslaCar {
         this.battery.usableLevel = parseInt(result.usable_battery_level);
       }
 
+      if(result.charge_limit_soc && parseInt(result.charge_limit_soc)) {
+        this.battery.chargeLimit = parseInt(result.charge_limit_soc)
+      }
       result.battery_heater_on && result.battery_heater_on === '1'
         ? (this.battery.heater = true)
         : (this.battery.heater = false);
@@ -236,6 +240,25 @@ export class TeslaCar implements ITeslaCar {
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.sentry_mode = status;
+          this.setCarAsOnline();
+          return true;
+        } else {
+          // Not changing car state, we do not know the actual state, let polling find out.
+          return false;
+        }
+      })
+      .finally(() => {
+        this.afterAPICall();
+      });
+  }
+
+  public async setChargeLimit(value) {
+    this.skipUpdate = true;
+    return await this.teslafiapi
+      .action('set_charge_limit', value)
+      .then(async (response) => {
+        if (response.response && response.response.result) {
+          this.battery.chargeLimit = value;
           this.setCarAsOnline();
           return true;
         } else {
