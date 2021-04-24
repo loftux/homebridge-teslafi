@@ -19,7 +19,7 @@
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint ./src --ext .ts --max-warnings=150",
-    "watch": "npm run build && npm link && nodemon",
+    "watch": "npm run build && cp src/dashboard/template.html dist/dashboard/ && npm link && nodemon",
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run build",
     "test": "echo \"Tests not implemented\""
@@ -31,7 +31,8 @@
     "homekit"
   ],
   "dependencies": {
-    "node-fetch": "2.6.1"
+    "node-fetch": "2.6.1",
+    "node-html-to-image": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^14.14.6",

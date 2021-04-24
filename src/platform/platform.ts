@@ -17,7 +17,8 @@ import { TeslaDoorLockAccessory } from './platformAccessoryLockDoor';
 import { TeslaThermostatAccessory } from './platformAccessoryThermostat';
 import { TeslafiAPI } from '../utils/api';
 import { TeslaCar } from '../utils/teslaCar';
-
+import { Dashboard} from '../dashboard/dashboard';
+ 
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
@@ -35,6 +36,8 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
   public readonly teslafiapi: TeslafiAPI;
   public readonly teslacar: TeslaCar;
   public accessoryPrefix = '';
+
+  public dashboard: Dashboard;
 
   private teslaDevices = [
     {
@@ -88,6 +91,9 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
       this.accessoryPrefix = this.config.name ? this.config.name + ' ' : '';
     }
 
+    // Init the dashboard
+    this.dashboard = new Dashboard(this, this.teslacar);
+    
     this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.

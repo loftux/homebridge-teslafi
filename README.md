@@ -19,6 +19,7 @@ If you don't even own a Tesla yet, buy using this [referral link](https://ts.la/
 * **Door lock:** Unlock and lock doors.
 * **New Software version:** Trigger Occupancy sensor when a new software version is available/installing.
 * **Tagged Locations:** Trigger Occupancy sensor when car is at a TeslaFi tagged location. Match one or more locations that you have named in TeslaFi.
+* **Tesla Status Dashboard:** Show data from the car using [Homebridge Camera ffmpeg)(https://github.com/Sunoo/homebridge-camera-ffmpeg)
 
 State of each accessory is updated if changed outside of Homekit. For example, when Sentry Mode is activated, it will give you a notification in Homekit. Each accessory can be disabled if you do not intend to use it. 
 
@@ -36,6 +37,15 @@ You must create and get your TeslaFi API token. Login to your TeslaFi account, s
 On the TeslaFi API page, enable or disable the API functions you intend to use. For example, if you plan to use the Climate Control, enable *Start HVAC*, *Stop HVAC*, *Set HVAC Temperature*. If not enabled in TeslaFi, the changes sent via Homekit will be ignored.  
 
 This plugin supports configuation using the [Homebridge Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x).
+
+### Tesla Dashboard using Camera
+**BETA Feature**  
+
+Install homebridge-camera-ffmpeg, refer to the their start page for instructions.
+Configure the homebridge-camera-ffmpeg with  
+`"source": "-f image2 -loop 1 -s 720x480 -pix_fmt yuvj422p -i /path/to/file/homebridge/teslafi/<configured_name>_dashboard.png"`  
+
+This is a source setting I've seen working, improvement suggestions welcome.
 
 ### Configuration in your Home app
 Since Apple Homekit do not have Accessories that maps 1 to 1 with managing a car, implementation has to choose existing Homekit accessories. Thus, the charging level is set using a Light Bulb (!), because that adds a slider to use for changing charge level. It will always stay on.

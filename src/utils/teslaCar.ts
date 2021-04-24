@@ -19,6 +19,8 @@ export class TeslaCar implements ITeslaCar {
 
   public display_name = 'Tesla';
   public state = 'asleep';
+  public notes = '';
+  public carState = '';
   public sentry_mode = false;
 
   public software = {
@@ -87,6 +89,16 @@ export class TeslaCar implements ITeslaCar {
 
     // Is car online?
     result.state ? (this.state = result.state) : (this.state = 'asleep');
+    // Car is not really online if trying to sleep
+    if (result.Notes && result.Notes === 'Trying To Sleep') {
+      this.state = 'asleep';
+    }
+
+    // Store Notes to be used in dashlet
+    this.notes = result.Notes;
+    if (result.carState) {
+      this.carState = result.carState;
+    }
 
     if (
       this.state === 'online' &&
@@ -127,13 +139,16 @@ export class TeslaCar implements ITeslaCar {
       }
 
       // Sentry mode
-      if(result.sentry_mode && result.sentry_mode === '1') {
-        this.sentry_mode = true
-      } else if(result.sentry_mode && result.sentry_mode === '0') {
-        this.sentry_mode = false
+      if (result.sentry_mode && result.sentry_mode === '1') {
+        this.sentry_mode = true;
+      } else if (result.sentry_mode && result.sentry_mode === '0') {
+        this.sentry_mode = false;
       } else {
-        this.log.debug('Sentry mode returned unexpected result.', result.sentry_mode);
-      } 
+        this.log.debug(
+          'Sentry mode returned unexpected result.',
+          result.sentry_mode
+        );
+      }
 
       // Battery & Charge
       if (result.battery_range) {
@@ -171,8 +186,8 @@ export class TeslaCar implements ITeslaCar {
         this.battery.usableLevel = parseInt(result.usable_battery_level);
       }
 
-      if(result.charge_limit_soc && parseInt(result.charge_limit_soc)) {
-        this.battery.chargeLimit = parseInt(result.charge_limit_soc)
+      if (result.charge_limit_soc && parseInt(result.charge_limit_soc)) {
+        this.battery.chargeLimit = parseInt(result.charge_limit_soc);
       }
       result.battery_heater_on && result.battery_heater_on === '1'
         ? (this.battery.heater = true)
@@ -217,7 +232,7 @@ export class TeslaCar implements ITeslaCar {
   public async wakeUp() {
     this.skipUpdate = true;
     return await this.teslafiapi
-      .action('wake_up', '')
+      .action( this.notes === 'Trying To Sleep' ? 'wake' : 'wake_up', '')
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.state = 'online';

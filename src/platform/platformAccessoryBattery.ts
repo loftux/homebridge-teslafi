@@ -99,7 +99,7 @@ export class TeslaBatteryAccessory extends TeslaAccessory {
         this.currentStateBattereyLevel
       );
       // Also set the charge in the swith name since Homekit is useless to display data that is there!!
-      this.service.updateCharacteristic(
+      this.service.setCharacteristic(
         this.platform.Characteristic.ConfiguredName,
         this.platform.accessoryPrefix +
           '\uD83D\uDD0B ' +
