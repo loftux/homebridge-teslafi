@@ -233,6 +233,25 @@ export class TeslaCar implements ITeslaCar {
       });
   }
 
+  public async sleep() {
+    this.skipUpdate = true;
+    return await this.teslafiapi
+      .action('sleep', '')
+      .then(async (response) => {
+        if (response.response && response.response.result) {
+          this.state = 'asleep';
+          this.notes = 'Trying To Sleep';
+          return true;
+        } else {
+          // Not changing car state, we do not know the actual state, let polling find out.
+          return false;
+        }
+      })
+      .finally(() => {
+        this.afterAPICall();
+      });
+  }
+
   public async toggleSentryMode(status) {
     this.skipUpdate = true;
     return await this.teslafiapi

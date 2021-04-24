@@ -28,7 +28,6 @@ export class TeslafiAPI {
       }
 
       switch (command) {
-        case 'wake':
         case 'enableLogging':
         case 'disableLogging':
         case 'honk':
@@ -44,9 +43,20 @@ export class TeslafiAPI {
           url += '&command=' + command;
           break;
 
+        case 'wake':
+          url += '&command=' + command;
+          // We do not need to wake up on wake_up :)
+          wakeUp = '';
+          break;
         case 'wake_up':
           url += '&command=' + command;
           // We do not need to wake up on wake_up :)
+          wakeUp = '';
+          break;
+
+        case 'sleep':
+          url += '&command=' + command;
+          // We do not need to wake up on sleep :)
           wakeUp = '';
           break;
 
@@ -82,10 +92,16 @@ export class TeslafiAPI {
         },
       })
         .then((res) => {
-          return res.json();
+          // Some API calls does not return json, and add insult to injury, content-type is always text/html
+          // So we have to use text body so that we can test for json
+          return res.text();
         })
-        .then((json) => {
-          return json;
+        .then((body) => {
+          try {
+            return JSON.parse(body);
+          } catch (e) {
+            return JSON.parse('{"response": {"reason": "", "result": true}}');
+          }
         })
         .catch((err) => {
           this.log.info(

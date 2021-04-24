@@ -222,14 +222,27 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     } else {
       callback(null);
 
-      // Set switch state back
-      if (this.platform.teslacar.state === 'online') {
-        setTimeout(() => {
-          this.service.updateCharacteristic(
-            this.platform.Characteristic.On,
-            true
-          );
-        }, 1000);
+      if (this.platform.teslacar.sentry_mode === true) {
+        // Set switch state back, we cannot attempt to sleep when sentry mode is on.
+        if (this.platform.teslacar.state === 'online') {
+          setTimeout(() => {
+            this.service.updateCharacteristic(
+              this.platform.Characteristic.On,
+              true
+            );
+          }, 1000);
+        }
+      } else {
+        if (this.platform.teslacar.state === 'online') {
+          await this.teslacar.sleep().then(() => {
+            this.platform.teslacar.state = 'asleep';
+            this.currentState = false;
+            this.service.updateCharacteristic(
+              this.platform.Characteristic.On,
+              this.currentState
+            );
+          });
+        }
       }
     }
   }
