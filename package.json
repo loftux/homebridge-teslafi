@@ -20,7 +20,7 @@
   "scripts": {
     "lint": "eslint ./src --ext .ts --max-warnings=150",
     "watch": "npm run build && cp src/dashboard/template.html dist/dashboard/ && npm link && nodemon",
-    "build": "rimraf ./dist && tsc",
+    "build": "rimraf ./dist && tsc && cp src/dashboard/template.html dist/dashboard/",
     "prepublishOnly": "npm run build",
     "test": "echo \"Tests not implemented\""
   },
