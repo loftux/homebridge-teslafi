@@ -47,6 +47,8 @@ Configure the homebridge-camera-ffmpeg with
 
 This is a source setting I've seen working, improvement suggestions welcome.
 
+You also need to add configuration option `dashboardImageFilePath` for the folder where you want the dashboard file to be created. If blank, no dashboard file is generated.
+
 ### Configuration in your Home app
 Since Apple Homekit do not have Accessories that maps 1 to 1 with managing a car, implementation has to choose existing Homekit accessories. Thus, the charging level is set using a Light Bulb (!), because that adds a slider to use for changing charge level. It will always stay on.
 What you can do is to exclude it from showing in "status". Long press the accessory, scroll down to the settings icon, choose status. Un-tick include in home status. This way you get a cleaner interface.

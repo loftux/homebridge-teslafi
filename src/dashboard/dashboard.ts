@@ -8,6 +8,7 @@ export class Dashboard {
     private rangeUnit: string;
     private tempUnit: string;
     private softwareCurrentStatusName = '2003.7.1';
+    private dashboardImageFilePath = '';
 
   constructor(
     protected readonly platform: TeslafiPlatform,
@@ -16,8 +17,12 @@ export class Dashboard {
 
     const buffer = fs.readFileSync(path.join(__dirname, 'template.html'))
     const htmlTemplate = buffer.toString('utf8')
+    this.dashboardImageFilePath = this.platform.config['dashboardImageFilePath'];
+    if(!this.dashboardImageFilePath.endsWith('/')) {
+      this.dashboardImageFilePath = this.dashboardImageFilePath + '/';
+    }
 
-    this.platform.log.debug('INIT dashboard');
+    this.platform.log.info('INIT dashboard to file path: ' + this.dashboardImageFilePath + ' - Use this path with homebridge-camera-ffmpeg to show.');
 
     this.rangeUnit = <string>this.platform.config['rangeUnit'];
     this.tempUnit = <string>this.platform.config['tempUnit'];
@@ -56,9 +61,10 @@ export class Dashboard {
       }
 
       nodeHtmlToImage({
-        output: './' + this.platform.config.name + '_dashboard.png',
-        html: htmlTemplate,
-        content: { 
+        "output": this.dashboardImageFilePath + this.platform.config.name + '_dashboard.png',
+        "html": htmlTemplate,
+        "puppeteerArgs": {"args": ['--no-sandbox']},
+        "content": { 
             batteryLevel: this.teslacar.battery.level,
             batteryLimit: this.teslacar.battery.chargeLimit,
             batteryUsableLevel: this.teslacar.battery.usableLevel,

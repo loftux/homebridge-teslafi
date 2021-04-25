@@ -37,7 +37,7 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
   public readonly teslacar: TeslaCar;
   public accessoryPrefix = '';
 
-  public dashboard: Dashboard;
+  public dashboard?: Dashboard;
 
   private teslaDevices = [
     {
@@ -91,8 +91,10 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
       this.accessoryPrefix = this.config.name ? this.config.name + ' ' : '';
     }
 
-    // Init the dashboard
-    this.dashboard = new Dashboard(this, this.teslacar);
+    // Init the dashboard, if path is configured
+    if(this.config['dashboardImageFilePath']) {
+      this.dashboard = new Dashboard(this, this.teslacar);
+    }
     
     this.log.debug('Finished initializing platform:', this.config.name);
 

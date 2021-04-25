@@ -107,6 +107,13 @@
           "type": "string"
         }
       },
+      "dashboardImageFilePath": {
+        "title": "Dashboard Image File PAth",
+        "type": "string",
+        "required": false,
+        "default": "",
+        "description": "Path to a writable directory where to create the Dashboard image [Tesla Car Name]_dashboard.png. Use same path in homebridge ffmpeg to show in Camera. Leave blank if you do not want dashboard image."
+      },
       "disableTeslaOnlineAccessory": {
         "title": "Disable Online",
         "type": "boolean"
