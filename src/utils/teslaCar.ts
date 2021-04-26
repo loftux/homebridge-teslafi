@@ -45,8 +45,36 @@ export class TeslaCar implements ITeslaCar {
     range: 0,
     estimatedRange: 0,
     chargeLimit: 90,
+    chargingCurrentRate: 0, // "charge_rate" range
+    chargingPhases: 0, // "charger_phases"
+    chargingAmpere: 0, // "charger_actual_current"
+    chargingVoltage: 0, //"charger_voltage": "233"
+    chargingAddedRange: 0, // "charge_miles_added_rated"
+    chargingAddedEnergy: 0, // "charge_energy_added"
+    chargingTimeToFull: "", //"time_to_full_charge"
   };
-
+  /**
+   "time_to_full_charge": "7.58",
+   "charge_current_request": "16",
+   "charge_enable_request": "1",
+   "charge_to_max_range": "0",
+   "charger_phases": "1",
+   "charger_power": "4",
+   "charge_limit_soc": "90",
+   "charger_pilot_current": "16",
+   "charge_port_latch": "Engaged",
+   "charger_actual_current": "16",
+   "charge_limit_soc_std": "90",
+   "charge_energy_added": "15.28",
+   "charge_port_door_open": "1",
+   "charge_limit_soc_max": "100",
+   "charge_rate": "14.1",
+   "charger_voltage": "233",
+   "charge_current_request_max": "16",
+   "charge_miles_added_ideal": "62.5",
+   "charge_limit_soc_min": "50",
+   "charge_miles_added_rated": "62.5",
+ */
   public climateControl = {
     canHeat: true, // not_enough_power_to_heat
     isClimateOn: false, // is_auto_conditioning_on
@@ -152,7 +180,7 @@ export class TeslaCar implements ITeslaCar {
 
       // Battery & Charge
       if (result.battery_range) {
-        let range = parseInt(result.battery_range);
+        let range = parseFloat(result.battery_range);
         if (this.rangeUnit === 'km') {
           range = range * this.milesToKm;
         }
@@ -197,6 +225,44 @@ export class TeslaCar implements ITeslaCar {
         this.software.current = result.car_version;
       }
 
+      if(result.charge_rate) {
+        this.battery.chargingCurrentRate = parseInt(result.charge_rate);
+      }
+
+      if(result.charger_phases) {
+        this.battery.chargingPhases = parseInt(result.charger_phases);
+      }
+      if(result.charger_actual_current) {
+        this.battery.chargingAmpere = parseInt(result.charger_actual_current);
+      }
+      if(result.charger_voltage) {
+        this.battery.chargingVoltage = parseInt(result.charger_voltage);
+      }
+      if(result.charge_miles_added_rated) {
+        this.battery.chargingAddedRange = parseFloat(result.charge_miles_added_rated);
+        if (this.rangeUnit === 'km') {
+          this.battery.chargingAddedRange =  Math.round(this.battery.chargingAddedRange * this.milesToKm);
+        } else {
+          this.battery.chargingAddedRange = Math.round(this.battery.chargingAddedRange);
+        }
+      }
+      if(result.charge_energy_added) {
+        this.battery.chargingAddedEnergy = parseInt(result.charge_energy_added);
+      }
+      if(result.time_to_full_charge) {
+        // Chargin time left is returned as fraction of minues
+        let chargingTime = <string>result.time_to_full_charge.split('.');
+        this.battery.chargingTimeToFull = chargingTime[0] + ':' + Math.round(parseInt(chargingTime[1])/100*60).toString().padStart(2,'0');
+      }
+/** 
+      chargingCurrentRate: 0, // "charge_rate" range
+      chargingPhases: 0, // "charger_phases"
+      chargingAmpere: 0, // "charger_actual_current"
+      chargingVoltage: 0, //"charger_voltage": "233"
+      chargingAddedRange: 0, // "charge_miles_added_rated"
+      chargingAddedEnergy: 0, // "charge_energy_added"
+      chargingTimeToFull: "", //"time_to_full_charge"
+*/
       result.locked && result.locked !== '1'
         ? (this.doorLockOpen = true)
         : (this.doorLockOpen = false);
@@ -232,7 +298,7 @@ export class TeslaCar implements ITeslaCar {
   public async wakeUp() {
     this.skipUpdate = true;
     return await this.teslafiapi
-      .action( this.notes === 'Trying To Sleep' ? 'wake' : 'wake_up', '')
+      .action(this.notes === 'Trying To Sleep' ? 'wake' : 'wake_up', '')
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.state = 'online';
