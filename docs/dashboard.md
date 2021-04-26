@@ -40,7 +40,7 @@ FROM oznu/homebridge:ubuntu
 
 RUN apt update && apt-get install -y software-properties-common \
     && add-apt-repository ppa:canonical-chromium-builds/stage \
-    && apt-get update && apt-get install -y chromium-browser libappindicator1 fonts-liberation
+    && apt-get update && apt-get install -y chromium-browser libappindicator1 fonts-liberation fonts-noto-color-emoji
 
 ENV CHROME_BIN=/usr/bin/chromium-browser \
     CHROME_PATH=/usr/lib/chromium/ \
@@ -51,3 +51,5 @@ ENV CHROME_BIN=/usr/bin/chromium-browser \
 This will generate a Docker image with Chromium pre-installed, and as seen by ENV variables, it tells puppeteer to use that instead of the version packaged in node_modules.
 
 If you are not using Docker, you can probably use the same approach in the OS where you are running Homebridge. Also check [Puppeteer Troubleshooting](https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md).
+
+If you are you get "squares" for uknown charactes, you must add emoji support to your os installation. In Ubuntu this can be done with `sudo apt-get install fonts-noto-color-emoji`.
