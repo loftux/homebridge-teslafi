@@ -19,7 +19,7 @@ If you don't even own a Tesla yet, buy using this [referral link](https://ts.la/
 * **Door lock:** Unlock and lock doors.
 * **New Software version:** Trigger Occupancy sensor when a new software version is available/installing.
 * **Tagged Locations:** Trigger Occupancy sensor when car is at a TeslaFi tagged location. Match one or more locations that you have named in TeslaFi.
-* **Tesla Status Dashboard:** Show data from the car using [Homebridge Camera ffmpeg)(https://github.com/Sunoo/homebridge-camera-ffmpeg)
+* **Tesla Status Dashboard:** Show data from the car using [Homebridge Camera FFmpeg](https://github.com/Sunoo/homebridge-camera-ffmpeg)
 
 State of each accessory is updated if changed outside of Homekit. For example, when Sentry Mode is activated, it will give you a notification in Homekit. Each accessory can be disabled if you do not intend to use it. 
 
@@ -41,13 +41,7 @@ This plugin supports configuation using the [Homebridge Config UI X](https://www
 ### Tesla Dashboard using Camera
 **BETA Feature**  
 
-Install homebridge-camera-ffmpeg, refer to the their start page for instructions.
-Configure the homebridge-camera-ffmpeg with  
-`"source": "-f image2 -loop 1 -s 720x480 -pix_fmt yuvj422p -i /path/to/file/homebridge/teslafi/<configured_name>_dashboard.png"`  
-
-This is a source setting I've seen working, improvement suggestions welcome.
-
-You also need to add configuration option `dashboardImageFilePath` for the folder where you want the dashboard file to be created. If blank, no dashboard file is generated.
+Creating the dashboard image is off by default. Follow this [guide to configure dashboard](https://github.com/loftux/homebridge-teslafi/blob/master/docs/dashboard.md).
 
 ### Configuration in your Home app
 Since Apple Homekit do not have Accessories that maps 1 to 1 with managing a car, implementation has to choose existing Homekit accessories. Thus, the charging level is set using a Light Bulb (!), because that adds a slider to use for changing charge level. It will always stay on.
@@ -67,7 +61,8 @@ Setting | Explanation
 "platform"| "TeslafiPlugin" -  Always this value
 "name" | The name added to the Accessory and shows in HomeKit
 "token" | TeslaFi token. Get this from your TeslaFi account
-"useNamePrefix" | If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars.
+"useNamePrefix" | If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars.  
+"dashboardImageFilePath" | Path to where plugin should create dashboard image file. Leave as empty string if not using this feature.
 "lowBatterylevel" | When the Low Battery warning should be triggered by HomeKit
 "chargeLevelIncrement" | Value between 1-5, 1 lets you set any target charge level between 50-100%, 5 set in steps of 5 and is easier to pinpoint with the slider. If max charge level value is set with the Tesla app or in any other way that differs from set increment, the rounded value is shown and can differ from actual set exact value. If this matters, use 1 as increment.
 "teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
@@ -86,6 +81,7 @@ Setting | Explanation
             "name": "MyTesla",
             "token": "<TeslaFi token>",
             "useNamePrefix": true,
+            "dashboardImageFilePath": "/homebridge/"
             "lowBatterylevel": 20,
             "chargeLevelIncrement": 5
             "teslafiRefreshTimeout": 60,
