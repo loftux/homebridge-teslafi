@@ -71,12 +71,13 @@ export class Dashboard {
         this.teslacar.location &&
         notes.indexOf(this.teslacar.location) === -1
       ) {
-        notes = notes + '@ ' + this.teslacar.location;
+        notes = notes + ' @\u200A' + this.teslacar.location;
       }
 
       let chargingInfo = '';
 
       if(this.teslacar.battery.charging) {
+        // If the car is charging, show the charging information
         switch (this.teslacar.battery.chargingPhases) {
           case 1:
             chargingInfo += ' \uD83D\uDD0B \u2780';
@@ -94,8 +95,15 @@ export class Dashboard {
         chargingInfo += this.teslacar.battery.chargingAmpere + 'A ' + this.teslacar.battery.chargingVoltage + 'V ';
         chargingInfo += '+' + this.teslacar.battery.chargingAddedEnergy + '\u200AkWh +' + this.teslacar.battery.chargingAddedRange + '\u200A' + this.rangeUnit;
         chargingInfo += ' \u23F1' + this.teslacar.battery.chargingTimeToFull;
+      } else {
+        chargingInfo += this.teslacar.battery.chargingState;
       }
 
+      let batteryLevel = this.teslacar.battery.level.toString();
+      if(this.teslacar.battery.level > this.teslacar.battery.usableLevel) {
+        batteryLevel += '\u200A(\u2744' + this.teslacar.battery.usableLevel +')';
+      }
+      batteryLevel += '\u200A/\u200A' + this.teslacar.battery.chargeLimit + '\u200A%';
  
       nodeHtmlToImage({
         output:
@@ -105,9 +113,7 @@ export class Dashboard {
         html: htmlTemplate,
         puppeteerArgs: { args: ['--no-sandbox'] },
         content: {
-          batteryLevel: this.teslacar.battery.level,
-          batteryLimit: this.teslacar.battery.chargeLimit,
-          batteryUsableLevel: '\u2744' + this.teslacar.battery.usableLevel,
+          batteryLevel: batteryLevel,
           range: this.teslacar.battery.range,
           rangeEstimated: this.teslacar.battery.estimatedRange,
           rangeUnit: this.rangeUnit.toLowerCase(),

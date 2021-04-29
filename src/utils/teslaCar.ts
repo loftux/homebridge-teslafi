@@ -51,7 +51,8 @@ export class TeslaCar implements ITeslaCar {
     chargingVoltage: 0, //"charger_voltage": "233"
     chargingAddedRange: 0, // "charge_miles_added_rated"
     chargingAddedEnergy: 0, // "charge_energy_added"
-    chargingTimeToFull: "", //"time_to_full_charge"
+    chargingTimeToFull: '', //"time_to_full_charge"
+    chargingState: '', // "charging_state"
   };
   /**
    "time_to_full_charge": "7.58",
@@ -252,17 +253,12 @@ export class TeslaCar implements ITeslaCar {
       if(result.time_to_full_charge) {
         // Chargin time left is returned as fraction of minues
         let chargingTime = <string>result.time_to_full_charge.split('.');
-        this.battery.chargingTimeToFull = chargingTime[0] + ':' + Math.round(parseInt(chargingTime[1])/100*60).toString().padStart(2,'0');
+        this.battery.chargingTimeToFull = chargingTime[0] + ':' + Math.round(parseInt(chargingTime[1].padEnd(2,'0'))/100*60).toString().padStart(2,'0');
       }
-/** 
-      chargingCurrentRate: 0, // "charge_rate" range
-      chargingPhases: 0, // "charger_phases"
-      chargingAmpere: 0, // "charger_actual_current"
-      chargingVoltage: 0, //"charger_voltage": "233"
-      chargingAddedRange: 0, // "charge_miles_added_rated"
-      chargingAddedEnergy: 0, // "charge_energy_added"
-      chargingTimeToFull: "", //"time_to_full_charge"
-*/
+      if(result.charging_state) {
+        this.battery.chargingState = result.charging_state;
+      }
+
       result.locked && result.locked !== '1'
         ? (this.doorLockOpen = true)
         : (this.doorLockOpen = false);
