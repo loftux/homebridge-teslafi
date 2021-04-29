@@ -222,7 +222,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     } else {
       callback(null);
 
-      if (this.platform.teslacar.sentry_mode === true) {
+      if (this.platform.teslacar.sentry_mode === true  || this.platform.teslacar.battery.charging === true) {
         // Set switch state back, we cannot attempt to sleep when sentry mode is on.
         if (this.platform.teslacar.state === 'online') {
           setTimeout(() => {
