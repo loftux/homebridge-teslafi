@@ -152,7 +152,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
 
   _getCurrentState(): void {
     this.currentState =
-      this.platform.teslacar.state === 'asleep' ? false : true;
+      this.platform.teslacar.state === 'online' ? true : false;
 
     switch (this.teslacar.software.status) {
       case 'downloading_wifi_wait':
@@ -223,7 +223,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       callback(null);
 
       if (this.platform.teslacar.sentry_mode === true  || this.platform.teslacar.battery.charging === true) {
-        // Set switch state back, we cannot attempt to sleep when sentry mode is on.
+        // Set switch state back, we cannot attempt to sleep when sentry mode is on. Or charging.
         if (this.platform.teslacar.state === 'online') {
           setTimeout(() => {
             this.service.updateCharacteristic(
@@ -235,7 +235,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
       } else {
         if (this.platform.teslacar.state === 'online') {
           await this.teslacar.sleep().then(() => {
-            this.platform.teslacar.state = 'asleep';
+            this.platform.teslacar.state = 'offline';
             this.currentState = false;
             this.service.updateCharacteristic(
               this.platform.Characteristic.On,

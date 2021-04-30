@@ -18,7 +18,7 @@ export class TeslaCar implements ITeslaCar {
   private wakeupTimeout: number;
 
   public display_name = 'Tesla';
-  public state = 'asleep';
+  public state = 'offline';
   public notes = '';
   public carState = '';
   public sentry_mode = false;
@@ -117,10 +117,14 @@ export class TeslaCar implements ITeslaCar {
     const result = await this.teslafiapi.action('', '');
 
     // Is car online?
-    result.state ? (this.state = result.state) : (this.state = 'asleep');
-    // Car is not really online if trying to sleep
+    if(result.state && result.state === 'online') {
+      this.state = 'online';
+    } else {
+      this.state = 'offline';
+    }
+    // Car is not really online from a Teslafi perspective if trying to sleep
     if (result.Notes && result.Notes === 'Trying To Sleep') {
-      this.state = 'asleep';
+      this.state = 'offline';
     }
 
     // Store Notes to be used in dashlet
@@ -316,7 +320,7 @@ export class TeslaCar implements ITeslaCar {
       .action('sleep', '')
       .then(async (response) => {
         if (response.response && response.response.result) {
-          this.state = 'asleep';
+          this.state = 'offline';
           this.notes = 'Trying To Sleep';
           return true;
         } else {
