@@ -69,7 +69,8 @@ export class Dashboard {
       // Add the location if present. Sometimes TeslaFi includes that in the notes already, so check for that
       if (
         this.teslacar.location &&
-        notes.indexOf(this.teslacar.location) === -1
+        notes.indexOf(this.teslacar.location) === -1 &&
+        this.teslacar.location !== 'No Tagged Location Found'
       ) {
         notes = notes + ' @\u200A' + this.teslacar.location;
       }
