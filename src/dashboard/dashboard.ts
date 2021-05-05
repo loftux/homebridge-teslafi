@@ -3,7 +3,6 @@ import { TeslaCar } from '../utils/teslaCar';
 import nodeHtmlToImage from 'node-html-to-image';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getHeapStatistics } from 'node:v8';
 
 export class Dashboard {
   private rangeUnit: string;
@@ -66,6 +65,10 @@ export class Dashboard {
       }
 
       let notes = this.teslacar.notes;
+      if(notes) {
+        // Add parenthesis for clearer display
+        notes = '(' + notes + ')';
+      }
       // Add the location if present. Sometimes TeslaFi includes that in the notes already, so check for that
       if (
         this.teslacar.location &&
@@ -132,7 +135,7 @@ export class Dashboard {
               : this.teslacar.climateControl.outsideTemp,
           tempUnit: this.tempUnit.toUpperCase(),
           carState: this.teslacar.carState,
-          notes: notes,
+          notes: notes.replace('No Tagged Location Found','-'),
           version: this.softwareCurrentStatusName,
           chargingInfo: chargingInfo,
         },
