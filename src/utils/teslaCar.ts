@@ -2,11 +2,12 @@ import { Logger, PlatformConfig } from 'homebridge';
 import { TeslafiAPI } from './api';
 import { ITeslaCar } from './ITesla';
 import { EventEmitter } from 'events';
-import { throws } from 'assert';
+import * as fs from 'fs';
 
 export class TeslaCar implements ITeslaCar {
   public em: EventEmitter;
   private intervallRefresh: any;
+  private hasReadCachedData = false;
   public skipUpdate = false; // If an API call is ongoing, ignoree event in order to not reset accessory status.
 
   public rangeUnit: string;
@@ -18,7 +19,7 @@ export class TeslaCar implements ITeslaCar {
   private wakeupTimeout: number;
 
   public display_name = 'Tesla';
-  public state = 'offline';
+  public isOnline = false;
   public notes = '';
   public carState = '';
   public sentry_mode = false;
@@ -88,7 +89,8 @@ export class TeslaCar implements ITeslaCar {
 
   constructor(
     public readonly log: Logger,
-    public readonly config: PlatformConfig
+    public readonly config: PlatformConfig,
+    public readonly storagePath: string
   ) {
     this.em = new EventEmitter();
 
@@ -113,18 +115,59 @@ export class TeslaCar implements ITeslaCar {
     }, this.teslafiRefreshTimeout);
   }
 
+  private writeCache(result: JSON) {
+    try {
+      fs.writeFileSync(
+        this.storagePath + '/' + this.config.name + '_cachedResults.json',
+        JSON.stringify(result)
+      );
+    } catch (err) {
+      this.log.warn('Failed to write API logs results cache file.');
+    }
+  }
+
+  private async fetchData(): Promise<any> {
+    if (!this.hasReadCachedData) {
+      const cacheFile =
+        this.storagePath + '/' + this.config.name + '_cachedResults.json';
+
+      return fs.promises
+        .access(cacheFile, fs.constants.F_OK)
+        .then(() => {
+          return fs.promises
+            .readFile(cacheFile)
+            .then((storedFile) => {
+              this.hasReadCachedData = true;
+              this.log.warn(
+                'TeslaFi API cached data loaded, non-stale data will be loaded when car is online on next refresh'
+              );
+              return JSON.parse(storedFile.toString());
+            })
+            .catch(() => false);
+        })
+        .catch(() => false);
+      // We did not find any cache file, mark as if we have tried and fecth what we can
+      this.log.warn(
+        'TeslaFi API cached data not available, will fetch from TeslaFI API'
+      );
+      this.hasReadCachedData = true;
+    }
+
+    return await this.teslafiapi.action('', '');
+  }
+
   public async refresh() {
-    const result = await this.teslafiapi.action('', '');
+    const result = await this.fetchData();
 
     // Is car online?
-    if(result.state && result.state === 'online') {
-      this.state = 'online';
+    if (result.state && result.state === 'online') {
+      this.isOnline = true;
     } else {
-      this.state = 'offline';
+      this.isOnline = false;
     }
     // Car is not really online from a Teslafi perspective if trying to sleep
     if (result.Notes && result.Notes === 'Trying To Sleep') {
-      this.state = 'offline';
+      this.isOnline = false;
     }
 
     // Store Notes to be used in dashlet
@@ -133,10 +176,7 @@ export class TeslaCar implements ITeslaCar {
       this.carState = result.carState;
     }
 
-    if (
-      this.state === 'online' &&
-      !(result.Notes && result.Notes === 'Trying To Sleep')
-    ) {
+    if (this.isOnline) {
       // When asleep, teslafi returns null for most values, so keep what we have
       // Also when Trying to sleep, it returns online, but values ar null!
 
@@ -230,42 +270,59 @@ export class TeslaCar implements ITeslaCar {
         this.software.current = result.car_version;
       }
 
-      if(result.charge_rate) {
+      if (result.charge_rate) {
         this.battery.chargingCurrentRate = parseInt(result.charge_rate);
       }
 
-      if(result.charger_phases) {
+      if (result.charger_phases) {
         this.battery.chargingPhases = parseInt(result.charger_phases);
       }
-      if(result.charger_actual_current) {
+      if (result.charger_actual_current) {
         this.battery.chargingAmpere = parseInt(result.charger_actual_current);
       }
-      if(result.charger_voltage) {
+      if (result.charger_voltage) {
         this.battery.chargingVoltage = parseInt(result.charger_voltage);
       }
-      if(result.charge_miles_added_rated) {
-        this.battery.chargingAddedRange = parseFloat(result.charge_miles_added_rated);
+      if (result.charge_miles_added_rated) {
+        this.battery.chargingAddedRange = parseFloat(
+          result.charge_miles_added_rated
+        );
         if (this.rangeUnit === 'km') {
-          this.battery.chargingAddedRange =  Math.round(this.battery.chargingAddedRange * this.milesToKm);
+          this.battery.chargingAddedRange = Math.round(
+            this.battery.chargingAddedRange * this.milesToKm
+          );
         } else {
-          this.battery.chargingAddedRange = Math.round(this.battery.chargingAddedRange);
+          this.battery.chargingAddedRange = Math.round(
+            this.battery.chargingAddedRange
+          );
         }
       }
-      if(result.charge_energy_added) {
+      if (result.charge_energy_added) {
         this.battery.chargingAddedEnergy = parseInt(result.charge_energy_added);
       }
-      if(result.time_to_full_charge) {
+      if (result.time_to_full_charge) {
         // Chargin time left is returned as fraction of minues
         let chargingTime = <string>result.time_to_full_charge.split('.');
-        this.battery.chargingTimeToFull = chargingTime[0] + ':' + Math.round(parseInt(chargingTime[1].padEnd(2,'0'))/100*60).toString().padStart(2,'0');
+        this.battery.chargingTimeToFull =
+          chargingTime[0] +
+          ':' +
+          Math.round((parseInt(chargingTime[1].padEnd(2, '0')) / 100) * 60)
+            .toString()
+            .padStart(2, '0');
       }
-      if(result.charging_state) {
+      if (result.charging_state) {
         this.battery.chargingState = result.charging_state;
       }
 
       result.locked && result.locked !== '1'
         ? (this.doorLockOpen = true)
         : (this.doorLockOpen = false);
+    } else {
+      // Since we are offline, this must be the actual state 
+      this.climateControl.isClimateOn = false;
+      this.sentry_mode = false;
+      this.battery.charging = false;
+      this.doorLockOpen = false
     }
 
     // These we check outside of being online
@@ -293,6 +350,11 @@ export class TeslaCar implements ITeslaCar {
     // If for some reason, the skip has not been reset, we do so to avoid it never updating. But only after we emitted event.
     // TODO: Evaluate if this has desired outcome.
     this.skipUpdate = false;
+
+    // Write to cache if online as a last good know state.
+    if (this.isOnline) {
+      this.writeCache(result);
+    }
   }
 
   public async wakeUp() {
@@ -301,7 +363,7 @@ export class TeslaCar implements ITeslaCar {
       .action(this.notes === 'Trying To Sleep' ? 'wake' : 'wake_up', '')
       .then(async (response) => {
         if (response.response && response.response.result) {
-          this.state = 'online';
+          this.isOnline = true;
 
           return true;
         } else {
@@ -320,7 +382,7 @@ export class TeslaCar implements ITeslaCar {
       .action('sleep', '')
       .then(async (response) => {
         if (response.response && response.response.result) {
-          this.state = 'offline';
+          this.isOnline = false;
           this.notes = 'Trying To Sleep';
           return true;
         } else {
@@ -475,7 +537,7 @@ export class TeslaCar implements ITeslaCar {
     //Check if configure to wake the car when sending command, if so also set status to online
     // We do this since it can take some timee for TeslaFi API to update its online status.
     if (this.wakeupTimeout > 0) {
-      this.state = 'online';
+      this.isOnline = true;
     }
   }
 

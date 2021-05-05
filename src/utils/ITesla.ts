@@ -68,7 +68,7 @@ export abstract class TeslaAccessory implements ITeslaAccessory {
 
 export interface ITeslaCar {
   display_name: string;
-  state: string;
+  isOnline: boolean;
   sentry_mode: boolean;
   battery: {
     charging: boolean; // carState': 'Charging'
