@@ -84,7 +84,7 @@ export class TeslafiPlatform implements DynamicPlatformPlugin {
     public readonly api: API
   ) {
     this.teslafiapi = new TeslafiAPI(this.log, this.config);
-    this.teslacar = new TeslaCar(log, config);
+    this.teslacar = new TeslaCar(log, config, api.user.storagePath());
 
     // Set the prefix
     if (this.config['useNamePrefix'] && this.config['useNamePrefix'] === true) {
