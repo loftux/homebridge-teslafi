@@ -136,7 +136,7 @@ export class Dashboard {
               : this.teslacar.climateControl.outsideTemp,
           tempUnit: this.tempUnit.toUpperCase(),
           carState: this.teslacar.carState,
-          notes: notes.replace('No Tagged Location Found','-'),
+          notes: notes ? notes.replace('No Tagged Location Found','-') : '',
           version: this.softwareCurrentStatusName,
           chargingInfo: chargingInfo,
         },
