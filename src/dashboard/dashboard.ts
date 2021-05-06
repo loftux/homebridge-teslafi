@@ -104,7 +104,8 @@ export class Dashboard {
       }
 
       let batteryLevel = this.teslacar.battery.level.toString();
-      if(this.teslacar.battery.level > this.teslacar.battery.usableLevel) {
+      // Show usable level, but not if charging due to space constraint
+      if(this.teslacar.battery.level > this.teslacar.battery.usableLevel && !this.teslacar.battery.charging) {
         batteryLevel += '\u200A(\u2744' + this.teslacar.battery.usableLevel +')';
       }
       batteryLevel += '\u200A/\u200A' + this.teslacar.battery.chargeLimit + '\u200A%';

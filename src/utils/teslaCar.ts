@@ -359,12 +359,17 @@ export class TeslaCar implements ITeslaCar {
 
   public async wakeUp() {
     this.skipUpdate = true;
+    const command = (this.notes === 'Trying To Sleep' ) ? 'wake' : 'wake_up';
     return await this.teslafiapi
-      .action(this.notes === 'Trying To Sleep' ? 'wake' : 'wake_up', '')
+      .action(command, '')
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.isOnline = true;
-
+          if(command === 'wake_up') {
+            setTimeout(() => {
+              this.teslafiapi.action('wake','');
+            }, 20000);
+          }
           return true;
         } else {
           // Not changing car state, we do not know the actual state, let polling find out.
