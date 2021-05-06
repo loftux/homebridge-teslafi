@@ -64,7 +64,7 @@ export class Dashboard {
             this.teslacar.software.new + ' Installed';
       }
 
-      let notes = this.teslacar.notes;
+      let notes = this.teslacar.notes||'';
       if(notes) {
         // Add parenthesis for clearer display
         notes = '(' + notes + ')';
@@ -136,7 +136,7 @@ export class Dashboard {
               : this.teslacar.climateControl.outsideTemp,
           tempUnit: this.tempUnit.toUpperCase(),
           carState: this.teslacar.carState,
-          notes: notes ? notes.replace('No Tagged Location Found','-') : '',
+          notes: notes.replace('No Tagged Location Found','-') ,
           version: this.softwareCurrentStatusName,
           chargingInfo: chargingInfo,
         },

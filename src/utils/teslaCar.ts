@@ -127,6 +127,7 @@ export class TeslaCar implements ITeslaCar {
   }
 
   private async fetchData(): Promise<any> {
+    /** 
     if (!this.hasReadCachedData) {
       const cacheFile =
         this.storagePath + '/' + this.config.name + '_cachedResults.json';
@@ -152,7 +153,7 @@ export class TeslaCar implements ITeslaCar {
       );
       this.hasReadCachedData = true;
     }
-
+*/
     return await this.teslafiapi.action('', '');
   }
 
