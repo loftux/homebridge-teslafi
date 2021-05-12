@@ -64,23 +64,25 @@ export class Dashboard {
             this.teslacar.software.new + ' Installed';
       }
 
-      let notes = this.teslacar.notes||'';
-      if(notes) {
+      let notes = this.teslacar.notes;
+      if (notes) {
         // Add parenthesis for clearer display
         notes = '(' + notes + ')';
+        // Remove no tagged location if found
+        notes = notes.replace('No Tagged Location Found', '-');
       }
       // Add the location if present. Sometimes TeslaFi includes that in the notes already, so check for that
       if (
         this.teslacar.location &&
-        notes && notes.indexOf(this.teslacar.location) === -1 &&
+        notes.indexOf(this.teslacar.location) === -1 &&
         this.teslacar.location !== 'No Tagged Location Found'
       ) {
-        notes = notes + ' @\u200A' + this.teslacar.location;
+        notes = notes + ' \ud83d\udccd\u200A' + this.teslacar.location;
       }
 
       let chargingInfo = '';
 
-      if(this.teslacar.battery.charging) {
+      if (this.teslacar.battery.charging) {
         // If the car is charging, show the charging information
         switch (this.teslacar.battery.chargingPhases) {
           case 1:
@@ -96,8 +98,18 @@ export class Dashboard {
             chargingInfo += ' \uD83D\uDD0B';
             break;
         }
-        chargingInfo += this.teslacar.battery.chargingAmpere + 'A ' + this.teslacar.battery.chargingVoltage + 'V ';
-        chargingInfo += '+' + this.teslacar.battery.chargingAddedEnergy + '\u200AkWh +' + this.teslacar.battery.chargingAddedRange + '\u200A' + this.rangeUnit;
+        chargingInfo +=
+          this.teslacar.battery.chargingAmpere +
+          'A ' +
+          this.teslacar.battery.chargingVoltage +
+          'V ';
+        chargingInfo +=
+          '+' +
+          this.teslacar.battery.chargingAddedEnergy +
+          '\u200AkWh +' +
+          this.teslacar.battery.chargingAddedRange +
+          '\u200A' +
+          this.rangeUnit;
         chargingInfo += ' \u23F1' + this.teslacar.battery.chargingTimeToFull;
       } else {
         chargingInfo += this.teslacar.battery.chargingState;
@@ -105,11 +117,36 @@ export class Dashboard {
 
       let batteryLevel = this.teslacar.battery.level.toString();
       // Show usable level, but not if charging due to space constraint
-      if(this.teslacar.battery.level > this.teslacar.battery.usableLevel && !this.teslacar.battery.charging) {
-        batteryLevel += '\u200A(\u2744' + this.teslacar.battery.usableLevel +')';
+      if (
+        this.teslacar.battery.level > this.teslacar.battery.usableLevel &&
+        !this.teslacar.battery.charging
+      ) {
+        batteryLevel +=
+          '\u200A(\u2744' + this.teslacar.battery.usableLevel + ')';
       }
-      batteryLevel += '\u200A/\u200A' + this.teslacar.battery.chargeLimit + '\u200A%';
- 
+      batteryLevel +=
+        '\u200A/\u200A' + this.teslacar.battery.chargeLimit + '\u200A%';
+
+      // Dwon arrow \u2b07\ufe0f, Up arrow  \u2b06\ufe0f Thermometer \ud83c\udf21\ufe0f
+      let climateIcon = ''
+      if (this.teslacar.climateControl.isClimateOn) {
+        if (this.teslacar.climateControl.insideTemp < this.teslacar.climateControl.tempSetting) {
+          climateIcon = '\u2b06\ufe0f \ud83c\udf21\ufe0f';
+        } else if (
+          this.teslacar.climateControl.insideTemp > this.teslacar.climateControl.tempSetting
+        ) {
+          climateIcon = '\u2b07\ufe0f \ud83c\udf21\ufe0f';
+        } else {
+          // It is equal, check outside temp if we are heating or cooling
+          if (this.teslacar.climateControl.tempSetting > this.teslacar.climateControl.outsideTemp) {
+            climateIcon = '\u2b06\ufe0f \ud83c\udf21\ufe0f';
+          } else {
+            climateIcon = '\u2b07\ufe0f \ud83c\udf21\ufe0f';
+          }
+        }
+      }
+
+
       nodeHtmlToImage({
         output:
           this.dashboardImageFilePath +
@@ -135,8 +172,9 @@ export class Dashboard {
                 )
               : this.teslacar.climateControl.outsideTemp,
           tempUnit: this.tempUnit.toUpperCase(),
+          climateIcon: climateIcon,
           carState: this.teslacar.carState,
-          notes: notes.replace('No Tagged Location Found','-') ,
+          notes: notes,
           version: this.softwareCurrentStatusName,
           chargingInfo: chargingInfo,
         },

@@ -31,7 +31,7 @@ export class TeslaCar implements ITeslaCar {
   };
 
   // Current location
-  public location = 'unknown';
+  public location = '';
 
   public chargePortOpen = false;
 
@@ -127,7 +127,6 @@ export class TeslaCar implements ITeslaCar {
   }
 
   private async fetchData(): Promise<any> {
-    /** 
     if (!this.hasReadCachedData) {
       const cacheFile =
         this.storagePath + '/' + this.config.name + '_cachedResults.json';
@@ -142,18 +141,25 @@ export class TeslaCar implements ITeslaCar {
               this.log.warn(
                 'TeslaFi API cached data loaded, non-stale data will be loaded when car is online on next refresh'
               );
+              setTimeout(() => {
+                this.refresh();
+              }, 3000);
               return JSON.parse(storedFile.toString());
             })
             .catch(() => false);
         })
-        .catch(() => false);
-      // We did not find any cache file, mark as if we have tried and fecth what we can
-      this.log.warn(
-        'TeslaFi API cached data not available, will fetch from TeslaFI API'
-      );
-      this.hasReadCachedData = true;
+        .catch(() => false)
+        .finally(() => {
+          if (!this.hasReadCachedData) {
+            // We did not find any cache file, mark as if we have tried and fecth what we can
+            this.log.warn(
+              'TeslaFi API cached data not available, will fetch from TeslaFI API'
+            );
+          }
+          this.hasReadCachedData = true;
+        });
     }
-*/
+
     return await this.teslafiapi.action('', '');
   }
 
@@ -172,10 +178,8 @@ export class TeslaCar implements ITeslaCar {
     }
 
     // Store Notes to be used in dashlet
-    this.notes = result.Notes;
-    if (result.carState) {
-      this.carState = result.carState;
-    }
+    this.notes = this.washString(result.Notes);
+    this.carState = this.washString(result.carState);
 
     if (this.isOnline) {
       // When asleep, teslafi returns null for most values, so keep what we have
@@ -319,11 +323,11 @@ export class TeslaCar implements ITeslaCar {
         ? (this.doorLockOpen = true)
         : (this.doorLockOpen = false);
     } else {
-      // Since we are offline, this must be the actual state 
+      // Since we are offline, this must be the actual state
       this.climateControl.isClimateOn = false;
       this.sentry_mode = false;
       this.battery.charging = false;
-      this.doorLockOpen = false
+      this.doorLockOpen = false;
     }
 
     // These we check outside of being online
@@ -334,17 +338,11 @@ export class TeslaCar implements ITeslaCar {
       ? (this.chargePortOpen = true)
       : (this.chargePortOpen = false);
 
-    result.location
-      ? (this.location = result.location)
-      : (this.location = 'unknown');
+    this.location = this.washString(result.location);
 
-    result.newVersion
-      ? (this.software.new = result.newVersion)
-      : (this.software.new = '');
+    this.software.new = this.washString(result.newVersion);
 
-    result.newVersionStatus
-      ? (this.software.status = result.newVersionStatus)
-      : (this.software.status = '');
+    this.software.status = this.washString(result.newVersionStatus);
 
     // Finally emit event
     this.em.emit('teslafifetch');
@@ -360,17 +358,12 @@ export class TeslaCar implements ITeslaCar {
 
   public async wakeUp() {
     this.skipUpdate = true;
-    const command = (this.notes === 'Trying To Sleep' ) ? 'wake' : 'wake_up';
+    const command = this.notes === 'Trying To Sleep' ? 'wake' : 'wake_up';
     return await this.teslafiapi
       .action(command, '')
       .then(async (response) => {
         if (response.response && response.response.result) {
           this.isOnline = true;
-          if(command === 'wake_up') {
-            setTimeout(() => {
-              this.teslafiapi.action('wake','');
-            }, 20000);
-          }
           return true;
         } else {
           // Not changing car state, we do not know the actual state, let polling find out.
@@ -555,9 +548,19 @@ export class TeslaCar implements ITeslaCar {
       this.refresh();
     }, this.teslafiRefreshTimeout);
 
+    // Fetch one extra time after 75s, hoping TeslaFi has updated its status. All commands seem to be pass-through to Teslaf api.
+    // (it does not for some reason stor for example it is online when recieved such a request)
+    setTimeout(() => {
+      this.refresh();
+    }, 75000);
+
     // Emit event to update any changes, but wait 1s (just a hunch Homekit not happy if a change comes immediately)
     setTimeout(() => {
       this.em.emit('teslafifetch');
     }, 1000);
+  }
+
+  private washString(str) {
+    return !!str ? str : '';
   }
 }

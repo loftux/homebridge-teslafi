@@ -7,7 +7,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     .OCCUPANCY_NOT_DETECTED;
   private softwareCurrentStatusName = '2003.7.1';
 
-  private currentLocation = 'unknown';
+  private currentLocation = '';
 
   getService(): Service {
     let service =
