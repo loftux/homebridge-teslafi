@@ -327,7 +327,8 @@ export class TeslaCar implements ITeslaCar {
       this.climateControl.isClimateOn = false;
       this.sentry_mode = false;
       this.battery.charging = false;
-      this.doorLockOpen = false;
+      // Issue #4, you can actaully let the car sleep with unlocked doors. Commenting out this assumption
+      // this.doorLockOpen = false;
     }
 
     // These we check outside of being online
