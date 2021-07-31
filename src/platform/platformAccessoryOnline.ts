@@ -79,12 +79,10 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     this.accessory.services.forEach((s) => {
       if (s.subtype && s.subtype?.indexOf('locationsensor') > -1) {
         let locationName = s.displayName;
+
         if (this.platform.accessoryPrefix) {
           // Prefix is used, grab the en part
-          const locationPart = s.displayName.split(' ');
-          if (locationPart.length > 1) {
-            locationName = locationPart[1];
-          }
+          locationName = s.displayName.replace(this.platform.accessoryPrefix,'');
         }
 
         if (!(locations.indexOf(locationName) > -1)) {
