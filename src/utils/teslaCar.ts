@@ -172,13 +172,21 @@ export class TeslaCar implements ITeslaCar {
     } else {
       this.isOnline = false;
     }
-    // Car is not really online from a Teslafi perspective if trying to sleep
-    if (result.Notes && result.Notes === 'Trying To Sleep') {
-      this.isOnline = false;
-    }
 
     // Store Notes to be used in dashlet
     this.notes = this.washString(result.Notes);
+
+    // There was an API fetch error, so ignore the results.
+    if(this.notes.indexOf('Error') >-1) {
+      this.skipUpdate = false;
+      return;
+    }
+
+    // Car is not really online from a Teslafi perspective if trying to sleep
+    if (this.notes && this.notes === 'Trying To Sleep') {
+      this.isOnline = false;
+    }
+
     this.carState = this.washString(result.carState);
 
     if (this.isOnline) {
