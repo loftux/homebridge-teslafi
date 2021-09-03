@@ -283,10 +283,6 @@ export class TeslaCar implements ITeslaCar {
         ? (this.battery.heater = true)
         : (this.battery.heater = false);
 
-      if (result.car_version) {
-        this.software.current = result.car_version;
-      }
-
       if (result.charge_rate) {
         this.battery.chargingCurrentRate = parseInt(result.charge_rate);
       }
@@ -335,12 +331,16 @@ export class TeslaCar implements ITeslaCar {
         ? (this.doorLockOpen = true)
         : (this.doorLockOpen = false);
 
+      if (result.car_version) {
+        let versionArray = this.washString(result.car_version).split(' ');
+        this.software.current = versionArray[0] ? versionArray[0] : '-';
+      }
+
       this.software.new = this.washString(result.newVersion);
       // Looks like Tesla/TeslaFi changed their APU, used to always return version, now empty string if not actually new version
       // Returns one space string of "emtpy", so check length
       if (this.software.new.length < 4) {
-        let versionArray = this.washString(result.car_version).split(' ');
-        this.software.new = versionArray[0] ? versionArray[0] : '-';
+        this.software.new = '-';
       }
     } else {
       // Since we are offline, this must be the actual state

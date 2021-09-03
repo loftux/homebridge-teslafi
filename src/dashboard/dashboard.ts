@@ -41,27 +41,42 @@ export class Dashboard {
       switch (this.teslacar.software.status) {
         case 'downloading_wifi_wait':
           this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Waiting for Wifi';
+            this.teslacar.software.current +
+            ' - ' +
+            this.teslacar.software.new +
+            ' Waiting for Wifi';
           break;
         case 'scheduled':
           this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Scheduled to install';
+            this.teslacar.software.current +
+            ' - ' +
+            this.teslacar.software.new +
+            ' Scheduled to install';
           break;
         case 'downloading':
           this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Downloading';
+            this.teslacar.software.current +
+            ' - ' +
+            this.teslacar.software.new +
+            ' Downloading';
           break;
         case 'installing':
           this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Installing';
+            this.teslacar.software.current +
+            ' - ' +
+            this.teslacar.software.new +
+            ' Installing';
           break;
         case 'available':
           this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Available for install';
+            this.teslacar.software.current +
+            ' - ' +
+            this.teslacar.software.new +
+            ' Available for install';
           break;
         default:
           this.softwareCurrentStatusName =
-            this.teslacar.software.new + ' Installed';
+            this.teslacar.software.current + ' Installed';
       }
 
       let notes = this.teslacar.notes;

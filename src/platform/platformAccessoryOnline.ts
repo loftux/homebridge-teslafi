@@ -175,7 +175,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
         break;
       default:
         this.softwareCurrentStatusName =
-          this.teslacar.software.new + ' Installed';
+          this.teslacar.software.current + ' Installed';
     }
 
     if (this.platform.accessoryPrefix) {
