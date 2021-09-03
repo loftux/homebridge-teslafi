@@ -177,7 +177,11 @@ export class TeslaCar implements ITeslaCar {
     this.notes = this.washString(result.Notes);
 
     // There was an API fetch error, so ignore the results.
-    if(this.notes.indexOf('Error') >-1) {
+    if (this.notes.indexOf('API') > -1) {
+      this.log.info(
+        'There was an API fetch issue. This will recover, skipping this update.',
+        this.notes
+      );
       this.skipUpdate = false;
       return;
     }
@@ -338,7 +342,6 @@ export class TeslaCar implements ITeslaCar {
         let versionArray = this.washString(result.car_version).split(' ');
         this.software.new = versionArray[0] ? versionArray[0] : '-';
       }
-
     } else {
       // Since we are offline, this must be the actual state
       this.climateControl.isClimateOn = false;
