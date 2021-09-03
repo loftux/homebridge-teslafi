@@ -16,9 +16,8 @@ export class Dashboard {
   ) {
     const buffer = fs.readFileSync(path.join(__dirname, 'template.html'));
     const htmlTemplate = buffer.toString('utf8');
-    this.dashboardImageFilePath = this.platform.config[
-      'dashboardImageFilePath'
-    ];
+    this.dashboardImageFilePath =
+      this.platform.config['dashboardImageFilePath'];
     if (!this.dashboardImageFilePath.endsWith('/')) {
       this.dashboardImageFilePath = this.dashboardImageFilePath + '/';
     }
@@ -143,24 +142,30 @@ export class Dashboard {
         '\u200A/\u200A' + this.teslacar.battery.chargeLimit + '\u200A%';
 
       // Dwon arrow \u2b07\ufe0f, Up arrow  \u2b06\ufe0f Thermometer \ud83c\udf21\ufe0f
-      let climateIcon = ''
+      let climateIcon = '';
       if (this.teslacar.climateControl.isClimateOn) {
-        if (this.teslacar.climateControl.insideTemp < this.teslacar.climateControl.tempSetting) {
+        if (
+          this.teslacar.climateControl.insideTemp <
+          this.teslacar.climateControl.tempSetting
+        ) {
           climateIcon = '\u2b06\ufe0f \ud83c\udf21\ufe0f';
         } else if (
-          this.teslacar.climateControl.insideTemp > this.teslacar.climateControl.tempSetting
+          this.teslacar.climateControl.insideTemp >
+          this.teslacar.climateControl.tempSetting
         ) {
           climateIcon = '\u2b07\ufe0f \ud83c\udf21\ufe0f';
         } else {
           // It is equal, check outside temp if we are heating or cooling
-          if (this.teslacar.climateControl.tempSetting > this.teslacar.climateControl.outsideTemp) {
+          if (
+            this.teslacar.climateControl.tempSetting >
+            this.teslacar.climateControl.outsideTemp
+          ) {
             climateIcon = '\u2b06\ufe0f \ud83c\udf21\ufe0f';
           } else {
             climateIcon = '\u2b07\ufe0f \ud83c\udf21\ufe0f';
           }
         }
       }
-
 
       nodeHtmlToImage({
         output:

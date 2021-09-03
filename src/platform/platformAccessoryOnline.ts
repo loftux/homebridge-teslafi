@@ -3,8 +3,8 @@ import { TeslaAccessory } from '../utils/ITesla';
 
 export class TeslaOnlineAccessory extends TeslaAccessory {
   protected softwareService?: Service;
-  private softwareCurrentStatus = this.platform.Characteristic.OccupancyDetected
-    .OCCUPANCY_NOT_DETECTED;
+  private softwareCurrentStatus =
+    this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED;
   private softwareCurrentStatusName = '2003.7.1';
 
   private currentLocation = '';
@@ -82,7 +82,10 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
 
         if (this.platform.accessoryPrefix) {
           // Prefix is used, grab the en part
-          locationName = s.displayName.replace(this.platform.accessoryPrefix,'');
+          locationName = s.displayName.replace(
+            this.platform.accessoryPrefix,
+            ''
+          );
         }
 
         if (!(locations.indexOf(locationName) > -1)) {
@@ -149,8 +152,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
   }
 
   _getCurrentState(): void {
-    this.currentState =
-      this.platform.teslacar.isOnline;
+    this.currentState = this.platform.teslacar.isOnline;
 
     switch (this.teslacar.software.status) {
       case 'downloading_wifi_wait':
@@ -185,8 +187,10 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     }
 
     this.teslacar.software.status
-      ? (this.softwareCurrentStatus = this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED)
-      : (this.softwareCurrentStatus = this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
+      ? (this.softwareCurrentStatus =
+          this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED)
+      : (this.softwareCurrentStatus =
+          this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
 
     this.currentLocation = this.teslacar.location;
   }
@@ -220,7 +224,10 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
     } else {
       callback(null);
 
-      if (this.platform.teslacar.sentry_mode === true  || this.platform.teslacar.battery.charging === true) {
+      if (
+        this.platform.teslacar.sentry_mode === true ||
+        this.platform.teslacar.battery.charging === true
+      ) {
         // Set switch state back, we cannot attempt to sleep when sentry mode is on. Or charging.
         if (this.platform.teslacar.isOnline) {
           setTimeout(() => {
@@ -231,7 +238,7 @@ export class TeslaOnlineAccessory extends TeslaAccessory {
           }, 1000);
         }
       } else {
-        if (this.platform.teslacar.isOnline ) {
+        if (this.platform.teslacar.isOnline) {
           await this.teslacar.sleep().then(() => {
             this.platform.teslacar.isOnline = false;
             this.currentState = false;
