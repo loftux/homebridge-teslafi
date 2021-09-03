@@ -330,6 +330,15 @@ export class TeslaCar implements ITeslaCar {
       result.locked && result.locked !== '1'
         ? (this.doorLockOpen = true)
         : (this.doorLockOpen = false);
+
+      this.software.new = this.washString(result.newVersion);
+      // Looks like Tesla/TeslaFi changed their APU, used to always return version, now empty string if not actually new version
+      // Returns one space string of "emtpy", so check length
+      if (this.software.new.length < 4) {
+        let versionArray = this.washString(result.car_version).split(' ');
+        this.software.new = versionArray[0] ? versionArray[0] : '-';
+      }
+
     } else {
       // Since we are offline, this must be the actual state
       this.climateControl.isClimateOn = false;
@@ -348,8 +357,6 @@ export class TeslaCar implements ITeslaCar {
       : (this.chargePortOpen = false);
 
     this.location = this.washString(result.location);
-
-    this.software.new = this.washString(result.newVersion);
 
     this.software.status = this.washString(result.newVersionStatus);
 
