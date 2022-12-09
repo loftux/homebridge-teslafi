@@ -64,29 +64,12 @@
         "maximum": 60,
         "description": "If the car is sleeping when a command is sent, try to wake the car first and wait for n seconds. Set to 0 if you don't want to wake the car. Lower value than 15 can be set, but not recommended."
       },
-      "tempUnit": {
-        "title": "Temperature Display Units",
-        "type": "string",
-        "required": true,
-        "default": "C",
-        "description": "Not in use: Turns out Homekit deals with all values in C, and if you have set iOS to prefer F it will handle that.",
-        "oneOf": [
-          {
-            "title": "Celsius",
-            "enum": ["C"]
-          },
-          {
-            "title": "Fahrenheit",
-            "enum": ["F"]
-          }
-        ]
-      },
       "rangeUnit": {
         "title": "Range Display Units",
         "type": "string",
         "required": true,
         "default": "km",
-        "description": "For future use when range display is implemented",
+        "description": "For range display in dashlet.",
         "oneOf": [
           {
             "title": "Kilometer",

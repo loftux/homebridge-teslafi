@@ -95,7 +95,7 @@ export class TeslaCar implements ITeslaCar {
     this.em = new EventEmitter();
 
     this.rangeUnit = <string>config['rangeUnit'];
-    this.tempUnit = <string>config['tempUnit'];
+    this.tempUnit = 'C';
 
     config['teslafiRefreshTimeout'] &&
     !isNaN(<number>config['teslafiRefreshTimeout'])
@@ -196,6 +196,9 @@ export class TeslaCar implements ITeslaCar {
     }
 
     this.carState = this.washString(result.carState);
+
+    // Set the temp unit from Teslafi
+    this.tempUnit = this.washString(result.temperature).toUpperCase();
 
     if (this.isOnline) {
       // When asleep, teslafi returns null for most values, so keep what we have
@@ -538,6 +541,11 @@ export class TeslaCar implements ITeslaCar {
 
   public async setClimateTemp(temp) {
     this.skipUpdate = true;
+
+    if(this.tempUnit === 'F') {
+      temp = Math.round((temp * 9) / 5 + 32);
+    }
+
     return await this.teslafiapi
       .action('set_temps', temp)
       .then(async (response) => {

@@ -67,8 +67,8 @@ Setting | Explanation
 "chargeLevelIncrement" | Value between 1-5, 1 lets you set any target charge level between 50-100%, 5 set in steps of 5 and is easier to pinpoint with the slider. If max charge level value is set with the Tesla app or in any other way that differs from set increment, the rounded value is shown and can differ from actual set exact value. If this matters, use 1 as increment.
 "teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
 "wakeupTimeout" | A value of 0 will not try to wake the car if it is sleeping. Default is 15, so if the car is sleeping, wait 15s after waking the car until command is committed. If your car is slow to wake up, add some time. If to long, HomeKit can time out and think there is no response.
-"tempUnit" | C or F, turns out HomeKit handles this, all is handled in C internally and your iOS settings will display matching your locale settings.
-"rangeUnit" | "km" or "miles". To be used when range display is added.
+"tempUnit" | C or F, DEPRECATED: Now fetched from Teslafi settings.
+"rangeUnit" | "km" or "miles". For range display in dashlet.
 "taggedLocations" | String array of named locations in TeslaFi. This will add an Occupancy sensor that trigggers whe TeslaFi has reported you ar at that location. You can add as many (reasonably) as you like. Must match the exakt name in TeslaFi. "No Tagged Location Found" is what TeslaFi use when there is no tagged location, this also works.
 "disable\<AccessoryName\>" | If you don't want to use a particular Accessory, you can disable it. See available options below.
 

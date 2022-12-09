@@ -83,7 +83,7 @@ export class TeslafiAPI {
         // Do nothing, just retrieve vehicle data
       }
 
-      this.log.debug('Fetching: ' + url + wakeUp);
+      // this.log.debug('Fetching: ' + url + wakeUp);
 
       return fetch(url + wakeUp, {
         headers: {

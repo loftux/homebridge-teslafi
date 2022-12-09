@@ -29,13 +29,16 @@ export class Dashboard {
     );
 
     this.rangeUnit = <string>this.platform.config['rangeUnit'];
-    this.tempUnit = <string>this.platform.config['tempUnit'];
+    this.tempUnit = <string>this.teslacar.tempUnit
 
     this.teslacar.em.on('teslafifetch', () => {
       if (this.teslacar.skipUpdate) {
         // This should only happen once, so reset the skip if something has gone wrong elsewheeere
         return;
       }
+
+      // Update the used unit on new fetch
+      this.tempUnit = <string>this.teslacar.tempUnit
 
       switch (this.teslacar.software.status) {
         case 'downloading_wifi_wait':
@@ -199,7 +202,7 @@ export class Dashboard {
           chargingInfo: chargingInfo,
         },
       }).then(() =>
-        this.platform.log.debug('The image was created successfully!')
+        //this.platform.log.debug('The image was created successfully! ')
       );
     });
   }
