@@ -9,6 +9,9 @@
     "type": "git",
     "url": "git@github.com:loftux/homebridge-teslafi.git"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "bugs": {
     "url": "https://github.com/loftux/homebridge-teslafi/issues"
   },
