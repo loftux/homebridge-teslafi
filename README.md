@@ -31,10 +31,10 @@ Each application or plugin that you have that polls data from you Tesla makes it
 It is also fast, Homekit is very sensitive to slow responses. This plugin polls data from TeslaFi with a set intervall, and already has the data whe Homekit requests it. However, there will be a small delay to pick up external changes, for example when you start charging the car, it can take 1-2 minutes (depending on poll intervall) before your Homekit shows as Charging. Better than the dreadful 'No response'.
 
 ## Configuration
-You must create and get your TeslaFi API token. Login to your TeslaFi account, select *Settings*, *Account* and *Advanced* at the bottom of the page. Then select *TeslaFi API Access* link and create your token.  
+You must create and get your TeslaFi API token. Login to your TeslaFi account, select *Settings*, *TeslaFi API* from the menu. There you will find the *API token* tab to create and manage your token.  
 **NOTE:** TeslaFi API Token is NOT the same as a Tesla token and must be created separately.
 
-On the TeslaFi API page, enable or disable the API functions you intend to use. For example, if you plan to use the Climate Control, enable *Start HVAC*, *Stop HVAC*, *Set HVAC Temperature*. If not enabled in TeslaFi, the changes sent via Homekit will be ignored.  
+On the TeslaFi API page, find the tab *Commands* to enable or disable the API functions you intend to use. For example, if you plan to use the Climate Control, enable *Start HVAC*, *Stop HVAC*, *Set HVAC Temperature*. If not enabled in TeslaFi, the changes sent via Homekit will be ignored.  
 
 This plugin supports configuation using the [Homebridge Config UI X](https://www.npmjs.com/package/homebridge-config-ui-x).
 
