@@ -102,6 +102,10 @@ export class TeslaCar implements ITeslaCar {
       ? (this.teslafiRefreshTimeout =
           <number>config['teslafiRefreshTimeout'] * 1000)
       : (this.teslafiRefreshTimeout = 60 * 1000);
+    // Make sue we don't refresh more often than every 20 seconds, Teslafi rate limit  
+    if(this.teslafiRefreshTimeout < 20000) {
+      this.teslafiRefreshTimeout = 20000;
+    }
 
     config['wakeupTimeout'] && !isNaN(<number>config['wakeupTimeout'])
       ? (this.wakeupTimeout = <number>config['wakeupTimeout'])

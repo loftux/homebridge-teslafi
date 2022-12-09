@@ -47,13 +47,13 @@
         "description": "Steps for each change in slider. Default is 5, easier to set desired level. 1 would give you fine tuning, but harder to pinpoint. Displayed max charge level will be rounded to this increment, so actual max charge level can differ from displayed. If this matters, use 1."
       },
       "teslafiRefreshTimeout": {
-        "title": "Refresh Teslafi data every n sceonds",
+        "title": "Refresh Teslafi data every n sceonds.",
         "type": "integer",
         "required": true,
         "default": 60,
-        "minimum": 30,
+        "minimum": 20,
         "maximum": 3000,
-        "description": "How often should car data be fetched from Teslafi. 60s (default) is a resonable setting."
+        "description": "How often should car data be fetched from Teslafi. 60s (default) is a resonable setting Teslafi usage is limited to 3 calls per minute (20)."
       },
       "wakeupTimeout": {
         "title": "Wait n sceonds for care to wake up",
@@ -62,7 +62,7 @@
         "default": 15,
         "minimum": 0,
         "maximum": 60,
-        "description": "If the car is sleeping when a command is sent, try to wake the car first and wait for n secons. Set to 0 if you don't want to wake the car. Lower value than 15 can be set, but not recommended."
+        "description": "If the car is sleeping when a command is sent, try to wake the car first and wait for n seconds. Set to 0 if you don't want to wake the car. Lower value than 15 can be set, but not recommended."
       },
       "tempUnit": {
         "title": "Temperature Display Units",
