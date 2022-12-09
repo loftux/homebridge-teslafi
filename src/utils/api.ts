@@ -18,8 +18,7 @@ export class TeslafiAPI {
   public async action(command: string, parameter: string): Promise<any> {
     try {
       let url =
-        'https://teslafi.com/feed.php?source=homebridge&encode=1&token=' +
-        this.config['token'];
+        'https://teslafi.com/feed.php?source=homebridge&encode=1' ;
 
       let wakeUp = '';
       if (this.wakeupTimeout > 0) {
@@ -89,6 +88,7 @@ export class TeslafiAPI {
       return fetch(url + wakeUp, {
         headers: {
           'Cache-Control': 'no-store',
+          'Authorization': 'Bearer ' + this.config['token'],
         },
       })
         .then((res) => {
