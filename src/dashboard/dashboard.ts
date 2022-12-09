@@ -202,7 +202,7 @@ export class Dashboard {
           chargingInfo: chargingInfo,
         },
       }).then(() =>
-        //this.platform.log.debug('The image was created successfully! ')
+        this.platform.log.debug('The image was created successfully! ')
       );
     });
   }
