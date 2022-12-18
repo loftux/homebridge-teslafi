@@ -121,5 +121,6 @@ dist
 
 # Code editor ignor
 .idea
+.vscode 
 
 localonly

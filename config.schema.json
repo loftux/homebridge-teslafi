@@ -97,6 +97,13 @@
         "default": "",
         "description": "Path to a writable directory where to create the Dashboard image [Tesla Car Name]_dashboard.png. Use same path in homebridge ffmpeg to show in Camera. Leave blank if you do not want dashboard image."
       },
+      "dashboardFontFamily": {
+        "title": "Dashboard Font Family",
+        "type": "string",
+        "required": false,
+        "default": "'Helvetiva', 'Gotham', 'Arial', 'DejaVu Sans', 'Liberation Sans'",
+        "description": "Font family for dashboard image. Default is Helvetiva, Gotham, Arial, DejaVu Sans, Liberation Sans. Font must be avialable in server. Use single quotes."
+      },
       "disableTeslaOnlineAccessory": {
         "title": "Disable Online",
         "type": "boolean"

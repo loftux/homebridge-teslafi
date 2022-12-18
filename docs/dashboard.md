@@ -1,8 +1,11 @@
-# Use the Dashboard feature
+# Use the Dashboard feature 
 
+This feature uses the Sharp library to generate a png image from a dynamic SVG.
+The image is updated whenever new data is fetched from TeslaFi, and streamed live.
+
+## Version 1.2.0 and earlier
 This feature is using chromium to generate the image displayed. If your install have issues with generating the image, se below.
 
-The image is updated whenever new data is fetched from TeslaFi, and streamed live.
 
 ## Configuring Homebridge TeslaFi plugin  
 
@@ -19,9 +22,10 @@ The file will be created as [name]_dashboard.png, where "name" is the configured
 Full path is later used to configure homebridge-camera-ffmpeg.
 The file created is in the size 720x480 px.  
 
+The font used in the image depends on the configuration option `dashboardFontFamily`, you can specify multiple font familys. Quote the font name with single quotes. Make sure the font you want to use is installed on the server, fontconfig must be installed, use fc-list to get a list of available fonts. See more at https://github.com/lovell/sharp.
 ## Installing and configuring Homebridge Camera 
 
-Follow the installation guide at [Homebridge Camera FFmpeg](https://github.com/Sunoo/homebridge-camera-ffmpeg). Easiest is just to search and installs using Homebridge UI X.
+Follow the installation guide at [Homebridge Camera FFmpeg](https://github.com/Sunoo/homebridge-camera-ffmpeg). Easiest is just to search and install using Homebridge UI X.
 
 Configure the homebridge-camera-ffmpeg with:  
 `"source": "-f image2 -loop 1 -s 720x480 -pix_fmt yuvj422p -i /homebridge/Elektra_dashboard.png"`  
@@ -29,7 +33,7 @@ Configure the homebridge-camera-ffmpeg with:
 The above is what's been tested and works, but you can experiment with different settings.
 Fore more details, check [Homebridge Camera FFmpeg](https://github.com/Sunoo/homebridge-camera-ffmpeg).
 
-## Issues with generating the image  
+## Issues with generating the image  - Version 1.2.0 and earlier
 
 Normally chromium headless is installed using puppeteer (as part of dependency in node-html-to-image) in node_modules. If the image is created once you have configured the path, all is fine.
 

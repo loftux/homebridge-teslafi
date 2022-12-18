@@ -63,6 +63,7 @@ Setting | Explanation
 "token" | TeslaFi token. Get this from your TeslaFi account
 "useNamePrefix" | If the cars name should be prefix the Accessory name. Recommended if you will setup for multiple cars.  
 "dashboardImageFilePath" | Path to where plugin should create dashboard image file. Leave as empty string if not using this feature.
+"dashboardFontFamily" | Specify font to use for image generation. Use single quotes if needed for font name. Se more under Dashobard documention 
 "lowBatterylevel" | When the Low Battery warning should be triggered by HomeKit
 "chargeLevelIncrement" | Value between 1-5, 1 lets you set any target charge level between 50-100%, 5 set in steps of 5 and is easier to pinpoint with the slider. If max charge level value is set with the Tesla app or in any other way that differs from set increment, the rounded value is shown and can differ from actual set exact value. If this matters, use 1 as increment.
 "teslafiRefreshTimeout" | How often to poll TeslaFi for latest data. The default 60s is recommended, min value is 30s. Shorter is not always better, as TeslaFi only polls once per minute.
@@ -82,6 +83,7 @@ Setting | Explanation
             "token": "<TeslaFi token>",
             "useNamePrefix": true,
             "dashboardImageFilePath": "/homebridge/"
+            "dashboardFontFamily": "'Helvetiva', 'Gotham', 'Arial', 'DejaVu Sans', 'Liberation Sans'"
             "lowBatterylevel": 20,
             "chargeLevelIncrement": 5
             "teslafiRefreshTimeout": 60,

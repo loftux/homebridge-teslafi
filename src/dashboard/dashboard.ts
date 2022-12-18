@@ -1,21 +1,21 @@
 import { TeslafiPlatform } from '../platform/platform';
 import { TeslaCar } from '../utils/teslaCar';
-import nodeHtmlToImage from 'node-html-to-image';
+import sharp from 'sharp';
+import template from './template.svg';
+import { DashboardUtils } from './dashboardUtils';
 import * as fs from 'fs';
 import * as path from 'path';
 
 export class Dashboard {
   private rangeUnit: string;
   private tempUnit: string;
-  private softwareCurrentStatusName = '2003.7.1';
   private dashboardImageFilePath = '';
+  private dashboardUtils = new DashboardUtils();
 
   constructor(
     protected readonly platform: TeslafiPlatform,
     protected teslacar: TeslaCar
   ) {
-    const buffer = fs.readFileSync(path.join(__dirname, 'template.html'));
-    const htmlTemplate = buffer.toString('utf8');
     this.dashboardImageFilePath =
       this.platform.config['dashboardImageFilePath'];
     if (!this.dashboardImageFilePath.endsWith('/')) {
@@ -24,61 +24,61 @@ export class Dashboard {
 
     this.platform.log.info(
       'INIT dashboard to file path: ' +
-        this.dashboardImageFilePath +
-        ' - Use this path with homebridge-camera-ffmpeg to show.'
+      this.dashboardImageFilePath + this.platform.config.name + '_dashboard.png' +
+      ' - Use this path with homebridge-camera-ffmpeg to show.'
     );
 
     this.rangeUnit = <string>this.platform.config['rangeUnit'];
     this.tempUnit = <string>this.teslacar.tempUnit
 
-    this.teslacar.em.on('teslafifetch', () => {
+    this.teslacar.em.on('teslafifetch', async () => {
       if (this.teslacar.skipUpdate) {
         // This should only happen once, so reset the skip if something has gone wrong elsewheeere
         return;
       }
 
       // Update the used unit on new fetch
-      this.tempUnit = <string>this.teslacar.tempUnit
+      this.tempUnit = <string>this.teslacar.tempUnit;
 
       switch (this.teslacar.software.status) {
         case 'downloading_wifi_wait':
-          this.softwareCurrentStatusName =
+          this.dashboardUtils.dashInfo.version =
             this.teslacar.software.current +
             ' - ' +
-            this.teslacar.software.new +
+            this.dashboardUtils.colorize(this.teslacar.software.new, this.dashboardUtils.teslaRed) +
             ' Waiting for Wifi';
           break;
         case 'scheduled':
-          this.softwareCurrentStatusName =
+          this.dashboardUtils.dashInfo.version =
             this.teslacar.software.current +
             ' - ' +
-            this.teslacar.software.new +
+            this.dashboardUtils.colorize(this.teslacar.software.new, this.dashboardUtils.teslaRed) +
             ' Scheduled to install';
           break;
         case 'downloading':
-          this.softwareCurrentStatusName =
+          this.dashboardUtils.dashInfo.version =
             this.teslacar.software.current +
             ' - ' +
-            this.teslacar.software.new +
+            this.dashboardUtils.colorize(this.teslacar.software.new, this.dashboardUtils.teslaRed) +
             ' Downloading';
           break;
         case 'installing':
-          this.softwareCurrentStatusName =
+          this.dashboardUtils.dashInfo.version =
             this.teslacar.software.current +
             ' - ' +
-            this.teslacar.software.new +
+            this.dashboardUtils.colorize(this.teslacar.software.new, this.dashboardUtils.teslaRed) +
             ' Installing';
           break;
         case 'available':
-          this.softwareCurrentStatusName =
+          this.dashboardUtils.dashInfo.version =
             this.teslacar.software.current +
             ' - ' +
-            this.teslacar.software.new +
+            this.dashboardUtils.colorize(this.teslacar.software.new, this.dashboardUtils.teslaRed) +
             ' Available for install';
           break;
         default:
-          this.softwareCurrentStatusName =
-            this.teslacar.software.current + ' Installed';
+          this.dashboardUtils.dashInfo.version =
+            this.dashboardUtils.colorize(this.teslacar.software.current, this.dashboardUtils.teslaGrey) + ' Installed';
       }
 
       let notes = this.teslacar.notes;
@@ -94,25 +94,30 @@ export class Dashboard {
         notes.indexOf(this.teslacar.location) === -1 &&
         this.teslacar.location !== 'No Tagged Location Found'
       ) {
-        notes = notes + ' \ud83d\udccd\u200A' + this.teslacar.location;
+        notes = notes + this.dashboardUtils.colorize(' @ ', this.dashboardUtils.teslaGrey) + this.teslacar.location;
       }
+
+      this.dashboardUtils.dashInfo.carState = this.teslacar.carState + notes;
 
       let chargingInfo = '';
 
       if (this.teslacar.battery.charging) {
         // If the car is charging, show the charging information
+        // Add the calbe icon in green
+        chargingInfo += this.dashboardUtils.colorize(this.dashboardUtils.cable, 'green');
+        // Charging phases
         switch (this.teslacar.battery.chargingPhases) {
           case 1:
-            chargingInfo += ' \uD83D\uDD0B \u2780';
+            chargingInfo += this.dashboardUtils.oneRing + '&#8198;';
             break;
           case 2:
-            chargingInfo += ' \uD83D\uDD0B \u2781';
+            chargingInfo += this.dashboardUtils.twoRing + '&#8198;';
             break;
-          case 2:
-            chargingInfo += ' \uD83D\uDD0B \u2782';
+          case 3:
+            chargingInfo += this.dashboardUtils.threeRing + '&#8198;';
             break;
           default:
-            chargingInfo += ' \uD83D\uDD0B';
+            chargingInfo += '&#8198;';
             break;
         }
         chargingInfo +=
@@ -127,9 +132,10 @@ export class Dashboard {
           this.teslacar.battery.chargingAddedRange +
           '\u200A' +
           this.rangeUnit;
-        chargingInfo += ' \u23F1' + this.teslacar.battery.chargingTimeToFull;
+        chargingInfo += ' ' + this.dashboardUtils.colorize(this.dashboardUtils.clock, 'green') + this.teslacar.battery.chargingTimeToFull;
       } else {
-        chargingInfo += this.teslacar.battery.chargingState;
+        chargingInfo += ' ' + this.dashboardUtils.colorize(this.dashboardUtils.cable, this.dashboardUtils.teslaGrey) +
+          ' ' + this.teslacar.battery.chargingState;
       }
 
       let batteryLevel = this.teslacar.battery.level.toString();
@@ -139,10 +145,19 @@ export class Dashboard {
         !this.teslacar.battery.charging
       ) {
         batteryLevel +=
-          '\u200A(\u2744' + this.teslacar.battery.usableLevel + ')';
+          '\u200A(' + this.dashboardUtils.colorize('*', 'blue') + this.teslacar.battery.usableLevel + ')';
       }
       batteryLevel +=
         '\u200A/\u200A' + this.teslacar.battery.chargeLimit + '\u200A%';
+
+      // If batterlevel is below config warning level, colorize it red
+      if (this.teslacar.battery.level < this.platform.config.lowBatterylevel ||
+        this.teslacar.battery.usableLevel < this.platform.config.lowBatterylevel) {
+
+        batteryLevel = this.dashboardUtils.colorize(batteryLevel, this.dashboardUtils.teslaRed);
+      }
+
+      this.dashboardUtils.dashInfo.battery = batteryLevel + ' ' + chargingInfo;
 
       // Dwon arrow \u2b07\ufe0f, Up arrow  \u2b06\ufe0f Thermometer \ud83c\udf21\ufe0f
       let climateIcon = '';
@@ -151,59 +166,61 @@ export class Dashboard {
           this.teslacar.climateControl.insideTemp <
           this.teslacar.climateControl.tempSetting
         ) {
-          climateIcon = '\u2b06\ufe0f \ud83c\udf21\ufe0f';
+          // We are heating
+          climateIcon = '&#8198;' + this.dashboardUtils.colorize(this.dashboardUtils.upArrow, this.dashboardUtils.teslaRed) + '&#8198;';
         } else if (
+          // We are cooling
           this.teslacar.climateControl.insideTemp >
           this.teslacar.climateControl.tempSetting
         ) {
-          climateIcon = '\u2b07\ufe0f \ud83c\udf21\ufe0f';
+          climateIcon = '&#8198;' + this.dashboardUtils.colorize(this.dashboardUtils.downArrow, 'blue') + '&#8198;';
         } else {
           // It is equal, check outside temp if we are heating or cooling
           if (
             this.teslacar.climateControl.tempSetting >
             this.teslacar.climateControl.outsideTemp
           ) {
-            climateIcon = '\u2b06\ufe0f \ud83c\udf21\ufe0f';
+            // tempSetting is higher than outside temp, we are heating
+            climateIcon = '&#8198;' + this.dashboardUtils.colorize(this.dashboardUtils.upArrow, this.dashboardUtils.teslaRed) + '&#8198;';
           } else {
-            climateIcon = '\u2b07\ufe0f \ud83c\udf21\ufe0f';
+            // tempSetting is lower than outside temp, we are cooling
+            climateIcon = '&#8198;' + this.dashboardUtils.colorize(this.dashboardUtils.downArrow, 'blue') + '&#8198;';
           }
         }
       }
+      // {{tempInside}} &deg;{{tempUnit}} (Inside) {{tempOutside}} &deg;{{tempUnit}} (Outside) {{climateIcon}}
 
-      nodeHtmlToImage({
-        output:
-          this.dashboardImageFilePath +
-          this.platform.config.name +
-          '_dashboard.png',
-        html: htmlTemplate,
-        puppeteerArgs: { args: ['--no-sandbox'] },
-        content: {
-          batteryLevel: batteryLevel,
-          range: this.teslacar.battery.range,
-          rangeEstimated: this.teslacar.battery.estimatedRange,
-          rangeUnit: this.rangeUnit.toLowerCase(),
-          tempInside:
-            this.tempUnit === 'F'
-              ? Math.round(
-                  (this.teslacar.climateControl.insideTemp * 9) / 5 + 32
-                )
-              : this.teslacar.climateControl.insideTemp,
-          tempOutside:
-            this.tempUnit === 'F'
-              ? Math.round(
-                  (this.teslacar.climateControl.outsideTemp * 9) / 5 + 32
-                )
-              : this.teslacar.climateControl.outsideTemp,
-          tempUnit: this.tempUnit.toUpperCase(),
-          climateIcon: climateIcon,
-          carState: this.teslacar.carState,
-          notes: notes,
-          version: this.softwareCurrentStatusName,
-          chargingInfo: chargingInfo,
-        },
-      }).then(() =>
-        this.platform.log.debug('The image was created successfully! ')
-      );
+      this.dashboardUtils.dashInfo.climate = this.dashboardUtils.tempDisplay(this.teslacar.climateControl.insideTemp, this.tempUnit)
+        + climateIcon + ' (Inside) ';
+      // if ousideTemp is less than 0, colorize it blue
+      if (this.teslacar.climateControl.outsideTemp < 0) {
+        this.dashboardUtils.dashInfo.climate += this.dashboardUtils.colorize(this.dashboardUtils.tempDisplay(this.teslacar.climateControl.outsideTemp, this.tempUnit), 'blue') + ' (Outside)';
+      } else {
+        this.dashboardUtils.dashInfo.climate += this.dashboardUtils.tempDisplay(this.teslacar.climateControl.outsideTemp, this.tempUnit) + ' (Outside)';
+      }
+      // if climate is on, add &#8277; to the end
+      if (this.teslacar.climateControl.isClimateOn) {
+        this.dashboardUtils.dashInfo.climate += this.dashboardUtils.colorize(' &#8277; ', this.dashboardUtils.teslaGrey);
+      }
+
+      this.dashboardUtils.dashInfo.range = this.teslacar.battery.estimatedRange + '&#8198;' + this.rangeUnit.toLowerCase()
+        + ' (Estimated) ' + this.teslacar.battery.range + '&#8198;' + this.rangeUnit.toLowerCase() + ' (Rated)';
+
+      const imgSvg = Buffer.from(template({
+        fontFamily: this.platform.config.fontFamily || '\'Helvetiva\', \'Gotham\', \'Arial\', \'DejaVu Sans\', \'Liberation Sans\'',
+        battery: this.dashboardUtils.dashInfo.battery,
+        range: this.dashboardUtils.dashInfo.range,
+        climate: this.dashboardUtils.dashInfo.climate,
+        carstate: this.dashboardUtils.dashInfo.carState,
+        version: this.dashboardUtils.dashInfo.version,
+      }).trim(), 'utf8');
+
+      //this.platform.log.debug('SVG image: ' + imgSvg);
+
+      const imgDashboard = await sharp(imgSvg, { format: 'svg' });
+
+      await imgDashboard.toFile(this.dashboardImageFilePath + this.platform.config.name + '_dashboard.png');
+
     });
   }
 }
